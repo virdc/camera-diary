@@ -2,11 +2,16 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,10 +20,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
 
       - name: Install dependencies
         working-directory: ./client
-        run: npm install
+        run: npm ci
+
+      - name: Fix react-scripts permissions
+        working-directory: ./client
+        run: chmod +x node_modules/.bin/react-scripts
 
       - name: Build project
         working-directory: ./client
@@ -31,13 +42,16 @@ jobs:
 
   deploy:
     needs: build
+    runs-on: ubuntu-latest
+
     permissions:
       pages: write
       id-token: write
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
