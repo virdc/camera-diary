@@ -1,3 +1,4 @@
+
 name: Deploy to GitHub Pages
 
 on:
@@ -27,13 +28,9 @@ jobs:
         working-directory: ./client
         run: npm ci
 
-      - name: Fix react-scripts permissions
-        working-directory: ./client
-        run: chmod +x node_modules/.bin/react-scripts
-
       - name: Build project
         working-directory: ./client
-        run: npm run build
+        run: node ./node_modules/react-scripts/bin/react-scripts.js build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
