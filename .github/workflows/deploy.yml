@@ -1,4 +1,42 @@
+<<<<<<< HEAD
 - name: Upload artifact
+=======
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./client
+        run: npm ci
+
+      - name: Build project
+        working-directory: ./client
+        run: node ./node_modules/react-scripts/bin/react-scripts.js build
+
+      - name: Upload artifact
+>>>>>>> 64fc44b4262b15be0a36401ff1da03e8edb435c3
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./client/build
