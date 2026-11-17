@@ -2,6 +2,7 @@ import React from 'react';
 
 export default function Ajustes({ 
   t,
+  lang,
   tipoCamara, setTipoCamara, 
   lenteUsado, setLenteUsado, 
   condicionLuz, setCondicionLuz, 
@@ -12,12 +13,18 @@ export default function Ajustes({
   nota, setNota, 
   registrarTomaDirecta 
 }) {
+  const es = lang !== 'en';
+
   const luces = [
     { id: 'soleado', label: t.solDirecto, icon: '☀️' },
     { id: 'nublado', label: t.nubladoSombra, icon: '☁️' },
     { id: 'interior', label: t.interiorLuz, icon: '💡' },
     { id: 'noche', label: t.nocturnaNeon, icon: '🌙' }
   ];
+
+  // Verifica si la luz actual no está definida para esta técnica pero tiene una luz ideal
+  const luzNoRecomendada = datosTecnica.ajustes && !datosTecnica.ajustes[condicionLuz] && datosTecnica.luzIdeal;
+  const luzIdealInfo = luces.find((l) => l.id === datosTecnica.luzIdeal);
 
   return (
     <div className="tab-pane animate-fade-in">
@@ -95,6 +102,17 @@ export default function Ajustes({
           <span className="tomas-badge">📸 {datosTecnica.tomasRecomendadas}</span>
         </div>
 
+        {luzNoRecomendada && (
+          <div className="tip-banner">
+            <span className="tip-icon">⚠️</span>
+            <p>
+              {es
+                ? `Esta técnica funciona mejor con otra luz. Te mostramos los valores sugeridos para ${luzIdealInfo ? luzIdealInfo.label : datosTecnica.luzIdeal}.`
+                : `This technique works best with different light. Showing suggested values for ${luzIdealInfo ? luzIdealInfo.label : datosTecnica.luzIdeal}.`}
+            </p>
+          </div>
+        )}
+
         <div className="exposure-grid">
           <div className="readout-item">
             <span className="readout-label">{t.apertura}</span>
@@ -125,6 +143,27 @@ export default function Ajustes({
           <span className="tip-icon">💡</span>
           <p><strong>{t.tecnicaCeroEdicion}</strong> {ajusteActual.tip}</p>
         </div>
+
+        {datosTecnica.equipo && (
+          <div className="tip-banner">
+            <span className="tip-icon">🎒</span>
+            <p><strong>{es ? 'Equipo sugerido:' : 'Suggested gear:'}</strong> {datosTecnica.equipo}</p>
+          </div>
+        )}
+
+        {datosTecnica.consejos && datosTecnica.consejos.length > 0 && (
+          <div className="tip-banner" style={{ alignItems: 'flex-start' }}>
+            <span className="tip-icon">✅</span>
+            <div>
+              <strong>{es ? 'Checklist para que salga bien' : 'Checklist for a great shot'}</strong>
+              <ul style={{ margin: '8px 0 0', paddingLeft: '18px', lineHeight: 1.5 }}>
+                {datosTecnica.consejos.map((c, i) => (
+                  <li key={i} style={{ marginBottom: '6px' }}>{c}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
         <div className="action-box">
           <input 
