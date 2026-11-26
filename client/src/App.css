@@ -1,4 +1,3 @@
-
 /* =========================================================
    PREMIUM MOBILE APP DESIGN SYSTEM
    MIDNIGHT VIOLET + BURGUNDY COPPER
@@ -7,7 +6,7 @@
 
 
 /* =========================================================
-   1. VARIABLES Y TEMAS
+1. VARIABLES Y TEMAS
    ========================================================= */
 
 :root,
@@ -114,7 +113,7 @@
 
 
 /* =========================================================
-   2. TEMA BURGUNDY COPPER
+2. TEMA BURGUNDY COPPER
    ========================================================= */
 
 [data-theme="red"] {
@@ -188,7 +187,7 @@
 
 
 /* =========================================================
-   3. RESET Y CONFIGURACIÓN GLOBAL
+3. RESET Y CONFIGURACIÓN GLOBAL
    ========================================================= */
 
 *,
@@ -264,7 +263,7 @@ button {
   font-family: inherit;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
   font-size: 16px;
@@ -288,7 +287,7 @@ img {
 
 
 /* =========================================================
-   4. ROOT Y CONTENEDOR PRINCIPAL
+4. ROOT Y CONTENEDOR PRINCIPAL
    ========================================================= */
 
 #root,
@@ -331,7 +330,7 @@ img {
 
 
 /* =========================================================
-   5. HEADER Y LOGO
+5. HEADER Y LOGO
    ========================================================= */
 
 .glass-header {
@@ -427,11 +426,11 @@ img {
 }
 
 .lang-select {
-  width: auto !important;
+  width: auto;
   max-width: 110px;
 
-  min-height: var(--touch-target) !important;
-  padding: 6px 10px !important;
+  min-height: var(--touch-target);
+  padding: 6px 10px;
 
   background: var(--bg-input);
   border: 1px solid var(--border-glass);
@@ -445,6 +444,7 @@ img {
 }
 
 .btn-mode-toggle {
+  flex-shrink: 0;
   width: var(--touch-target);
   height: var(--touch-target);
 
@@ -461,6 +461,7 @@ img {
   font-size: 1.1rem;
 
   cursor: pointer;
+  touch-action: manipulation;
   transition: var(--transition);
 }
 
@@ -472,7 +473,7 @@ img {
 
 
 /* =========================================================
-   6. SECCIONES Y TARJETAS
+6. SECCIONES Y TARJETAS
    ========================================================= */
 
 .tab-pane {
@@ -522,7 +523,6 @@ img {
   transition:
     background var(--transition),
     border-color var(--transition),
-    transform var(--transition),
     box-shadow var(--transition);
 }
 
@@ -546,7 +546,7 @@ img {
 
 
 /* =========================================================
-   7. BOTONES GENERALES
+7. BOTONES GENERALES Y ACCIONES
    ========================================================= */
 
 .btn,
@@ -588,7 +588,7 @@ img {
 .btn-pdf:active,
 .btn-excel:active,
 .btn-save:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .btn:disabled,
@@ -603,7 +603,6 @@ img {
 /* PRIMARY */
 
 .btn-pdf {
-  margin-top: 8px;
   color: #FFFFFF;
 
   background: var(--gradient-primary);
@@ -622,8 +621,6 @@ img {
 /* SAVE */
 
 .btn-save {
-  margin-top: 8px;
-
   color: var(--bg-main);
 
   background: linear-gradient(
@@ -635,9 +632,16 @@ img {
   box-shadow: var(--shadow-secondary);
 }
 
+.actions-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: var(--space-sm);
+}
+
 
 /* =========================================================
-   8. BOTONES SELECTORES
+8. BOTONES SELECTORES
    ========================================================= */
 
 .btn-toggle-group {
@@ -669,6 +673,7 @@ img {
   text-align: center;
 
   cursor: pointer;
+  touch-action: manipulation;
 
   transition: var(--transition);
 }
@@ -684,10 +689,43 @@ img {
 
 
 /* =========================================================
-   9. FORMULARIOS E INPUTS
+9. FORMULARIOS, SECCIONES E INPUTS
    ========================================================= */
 
-input,
+.biz-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subsection-title {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-divider {
+  border: 0;
+  border-top: 1px solid var(--border-glass);
+  margin: var(--space-md) 0;
+}
+
+.hint {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
   width: 100%;
@@ -713,13 +751,20 @@ select {
     background var(--transition);
 }
 
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--text-dim);
   opacity: 1;
 }
 
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
 textarea:focus,
 select:focus {
   border-color: var(--accent-secondary);
@@ -735,11 +780,10 @@ input[type="checkbox"],
 input[type="radio"] {
   width: 20px;
   height: 20px;
-  min-height: 20px;
-
-  padding: 0;
+  flex-shrink: 0;
 
   accent-color: var(--accent-secondary);
+  cursor: pointer;
 }
 
 input[type="file"] {
@@ -760,7 +804,11 @@ input[type="datetime-local"] {
 
   min-width: 0;
 
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
 }
 
 .form-group label {
@@ -772,7 +820,7 @@ input[type="datetime-local"] {
 
 
 /* =========================================================
-   10. BOTTOM NAVIGATION
+10. BOTTOM NAVIGATION
    ========================================================= */
 
 .bottom-nav {
@@ -905,7 +953,7 @@ input[type="datetime-local"] {
 
 
 /* =========================================================
-   11. BADGES Y ESTADOS
+11. BADGES Y ESTADOS
    ========================================================= */
 
 .badge,
@@ -941,7 +989,7 @@ input[type="datetime-local"] {
 
 
 /* =========================================================
-   12. BITÁCORA E HISTORIAL
+12. BITÁCORA E HISTORIAL
    ========================================================= */
 
 .bitacora-header {
@@ -1029,7 +1077,7 @@ input[type="datetime-local"] {
 
 
 /* =========================================================
-   13. TABLAS
+13. TABLAS
    ========================================================= */
 
 .sub-title-blue {
@@ -1112,7 +1160,7 @@ input[type="datetime-local"] {
 
 
 /* =========================================================
-   14. PRESUPUESTO
+14. PRESUPUESTO
    ========================================================= */
 
 .grid-inputs {
@@ -1128,6 +1176,7 @@ input[type="datetime-local"] {
   flex-direction: column;
   gap: 8px;
 
+  margin-top: var(--space-sm);
   padding: var(--space-md);
 
   background: rgba(var(--secondary-rgb), 0.07);
@@ -1147,9 +1196,29 @@ input[type="datetime-local"] {
   color: var(--text-muted);
 }
 
+.desglose-divider {
+  height: 1px;
+  width: 100%;
+  background: var(--border-glass);
+  margin: 2px 0;
+}
+
+.desglose-total {
+  font-size: 0.98rem;
+  font-weight: 750;
+  color: var(--text-main);
+}
+
+.price {
+  color: var(--accent-secondary);
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 
 /* =========================================================
-   15. AJUSTES Y PARÁMETROS
+15. AJUSTES Y PARÁMETROS
    ========================================================= */
 
 .param-item {
@@ -1164,6 +1233,10 @@ input[type="datetime-local"] {
   border-bottom: 1px solid var(--border-glass);
 }
 
+.param-item:last-child {
+  border-bottom: none;
+}
+
 .param-label {
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -1176,13 +1249,13 @@ input[type="datetime-local"] {
   font-size: 0.95rem;
   font-weight: 750;
 
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   text-align: right;
 }
 
 
 /* =========================================================
-   16. FOCUS Y ACCESIBILIDAD
+16. FOCUS Y ACCESIBILIDAD
    ========================================================= */
 
 :focus-visible {
@@ -1207,7 +1280,7 @@ button:disabled {
 
 
 /* =========================================================
-   17. RESPONSIVE - SMALL MOBILE
+17. RESPONSIVE - SMALL MOBILE
    ========================================================= */
 
 @media (max-width: 400px) {
@@ -1243,7 +1316,7 @@ button:disabled {
 
   .lang-select {
     max-width: 85px;
-    padding: 6px !important;
+    padding: 6px;
     font-size: 0.7rem;
   }
 
@@ -1274,7 +1347,7 @@ button:disabled {
 
 
 /* =========================================================
-   18. RESPONSIVE - TABLETS
+18. RESPONSIVE - TABLETS
    ========================================================= */
 
 @media (min-width: 640px) {
@@ -1302,11 +1375,24 @@ button:disabled {
   .card {
     padding: var(--space-lg);
   }
+
+  .actions-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .actions-bar > .btn,
+  .actions-bar > .btn-pdf,
+  .actions-bar > .btn-excel,
+  .actions-bar > .btn-save {
+    flex: 1 1 220px;
+    width: auto;
+  }
 }
 
 
 /* =========================================================
-   19. RESPONSIVE - DESKTOP
+19. RESPONSIVE - DESKTOP
    ========================================================= */
 
 @media (min-width: 1024px) {
@@ -1329,7 +1415,7 @@ button:disabled {
 
 
 /* =========================================================
-   20. LANDSCAPE AND SMALL HEIGHT
+20. LANDSCAPE AND SMALL HEIGHT
    ========================================================= */
 
 @media (orientation: landscape) and (max-height: 500px) {
@@ -1350,7 +1436,7 @@ button:disabled {
 
 
 /* =========================================================
-   21. HOVER - DESKTOP ONLY
+21. HOVER - DESKTOP ONLY
    ========================================================= */
 
 @media (hover: hover) and (pointer: fine) {
@@ -1358,7 +1444,6 @@ button:disabled {
   .card:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-strong);
-    transform: translateY(-2px);
   }
 
   .btn:hover,
@@ -1382,7 +1467,7 @@ button:disabled {
 
 
 /* =========================================================
-   22. REDUCED MOTION
+22. REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1398,7 +1483,7 @@ button:disabled {
 
 
 /* =========================================================
-   23. ANDROID / PWA FINISHING
+23. ANDROID / PWA FINISHING
    ========================================================= */
 
 @media (display-mode: standalone) {

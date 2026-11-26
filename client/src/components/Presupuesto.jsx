@@ -21,8 +21,16 @@ const num = (v) => parseFloat(v) || 0;
 const redondear = (n) => Math.round(n * 100) / 100;
 
 // Se usa tanto en este componente como en App.js (para el PDF)
-export function calcularPresupuesto({ precioHora, horasEstimadas, gastosViaticos, ubicacion, modoIVA, tasaIVA }) {
-  const recargo = ubicacion === 'estudio' ? 40 : 15;
+export function calcularPresupuesto({
+  precioHora,
+  horasEstimadas,
+  gastosViaticos,
+  ubicacion,
+  recargoEstudio = 40,
+  modoIVA,
+  tasaIVA,
+}) {
+  const recargo = ubicacion === 'estudio' ? num(recargoEstudio) : 0;
   const base = num(precioHora) * num(horasEstimadas) + num(gastosViaticos) + recargo;
   const tasa = modoIVA === 'sin' ? 0 : num(tasaIVA) / 100;
 
@@ -63,6 +71,7 @@ export default function Presupuesto({
   modoIVA, setModoIVA,        // 'sin' | 'agregar' | 'incluido'
   tasaIVA, setTasaIVA,
   ubicacion, setUbicacion,
+  recargoEstudio = 40, setRecargoEstudio,
   cliente, setCliente,
   precioHora, setPrecioHora,
   horasEstimadas, setHorasEstimadas,
@@ -74,7 +83,7 @@ export default function Presupuesto({
   const nombreImpuesto = infoPais.impuesto;
 
   const { subtotal, iva, total } = calcularPresupuesto({
-    precioHora, horasEstimadas, gastosViaticos, ubicacion, modoIVA, tasaIVA,
+    precioHora, horasEstimadas, gastosViaticos, ubicacion, recargoEstudio, modoIVA, tasaIVA,
   });
 
   const handlePais = (codigo) => {
@@ -120,17 +129,32 @@ export default function Presupuesto({
             </div>
           </div>
 
-          {/* Locación */}
-          <div className="form-group">
-            <label>{t.locacion}</label>
-            <select
-              value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
-              className="modern-select"
-            >
-              <option value="exteriores">{t.exteriores}</option>
-              <option value="estudio">{t.estudioPro}</option>
-            </select>
+          {/* Locación + Valor de estudio */}
+          <div className={ubicacion === 'estudio' ? 'grid-inputs' : 'form-group'}>
+            <div className="form-group">
+              <label>{t.locacion}</label>
+              <select
+                value={ubicacion}
+                onChange={(e) => setUbicacion(e.target.value)}
+                className="modern-select"
+              >
+                <option value="exteriores">{t.exteriores}</option>
+                <option value="estudio">{t.estudioPro}</option>
+              </select>
+            </div>
+            {ubicacion === 'estudio' && (
+              <div className="form-group">
+                <label>{t.valorEstudio || 'Valor estudio'} ({moneda}):</label>
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  className="modern-input"
+                  value={recargoEstudio}
+                  onChange={(e) => setRecargoEstudio?.(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Cliente */}

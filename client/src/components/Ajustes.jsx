@@ -1,181 +1,322 @@
 import React from 'react';
 
-export default function Ajustes({ 
-  t,
-  lang,
-  tipoCamara, setTipoCamara, 
-  lenteUsado, setLenteUsado, 
-  condicionLuz, setCondicionLuz, 
-  tecnica, setTecnica, 
-  baseTecnicas, 
-  ajusteActual, 
-  datosTecnica, 
-  nota, setNota, 
-  registrarTomaDirecta 
+// Tasas generales vigentes. Son editables en pantalla por si el caso es especial.
+export const PAISES = {
+  AR: { nombre: 'Argentina', moneda: 'ARS', iva: 21, impuesto: 'IVA' },
+  MX: { nombre: 'México', moneda: 'MXN', iva: 16, impuesto: 'IVA' },
+  CL: { nombre: 'Chile', moneda: 'CLP', iva: 19, impuesto: 'IVA' },
+  CO: { nombre: 'Colombia', moneda: 'COP', iva: 19, impuesto: 'IVA' },
+  PE: { nombre: 'Perú', moneda: 'PEN', iva: 18, impuesto: 'IGV' },
+  UY: { nombre: 'Uruguay', moneda: 'UYU', iva: 22, impuesto: 'IVA' },
+  ES: { nombre: 'España', moneda: 'EUR', iva: 21, impuesto: 'IVA' },
+  PT: { nombre: 'Portugal', moneda: 'EUR', iva: 23, impuesto: 'IVA' },
+  FR: { nombre: 'Francia', moneda: 'EUR', iva: 20, impuesto: 'TVA' },
+  DE: { nombre: 'Alemania', moneda: 'EUR', iva: 19, impuesto: 'MwSt' },
+  IT: { nombre: 'Italia', moneda: 'EUR', iva: 22, impuesto: 'IVA' },
+  US: { nombre: 'Estados Unidos', moneda: 'USD', iva: 0, impuesto: 'Sales Tax' },
+  OTRO: { nombre: 'Otro país', moneda: 'USD', iva: 0, impuesto: 'IVA' },
+};
+
+const num = (v) => parseFloat(v) || 0;
+const redondear = (n) => Math.round(n * 100) / 100;
+
+// Se usa tanto en este componente como en App.js (para el PDF)
+export function calcularPresupuesto({
+  precioHora,
+  horasEstimadas,
+  gastosViaticos,
+  ubicacion,
+  recargoEstudio = 40,
+  modoIVA,
+  tasaIVA,
 }) {
-  const es = lang !== 'en';
+  const recargo = ubicacion === 'estudio' ? num(recargoEstudio) : 0;
+  const base = num(precioHora) * num(horasEstimadas) + num(gastosViaticos) + recargo;
+  const tasa = modoIVA === 'sin' ? 0 : num(tasaIVA) / 100;
 
-  const luces = [
-    { id: 'soleado', label: t.solDirecto, icon: '☀️' },
-    { id: 'nublado', label: t.nubladoSombra, icon: '☁️' },
-    { id: 'interior', label: t.interiorLuz, icon: '💡' },
-    { id: 'noche', label: t.nocturnaNeon, icon: '🌙' }
-  ];
+  let subtotal, iva, total;
+  if (modoIVA === 'incluido') {
+    total = base;
+    subtotal = base / (1 + tasa);
+    iva = total - subtotal;
+  } else {
+    subtotal = base;
+    iva = base * tasa;
+    total = subtotal + iva;
+  }
+  return {
+    subtotal: redondear(subtotal),
+    iva: redondear(iva),
+    total: redondear(total),
+    recargo,
+  };
+}
 
-  // Verifica si la luz actual no está definida para esta técnica pero tiene una luz ideal
-  const luzNoRecomendada = datosTecnica.ajustes && !datosTecnica.ajustes[condicionLuz] && datosTecnica.luzIdeal;
-  const luzIdealInfo = luces.find((l) => l.id === datosTecnica.luzIdeal);
+export function formatearMoneda(valor, moneda) {
+  try {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: moneda,
+      maximumFractionDigits: moneda === 'CLP' || moneda === 'COP' ? 0 : 2,
+    }).format(valor);
+  } catch {
+    return `${valor} ${moneda}`;
+  }
+}
+
+export default function Presupuesto({
+  t,
+  pais, setPais,
+  moneda, setMoneda,
+  modoIVA, setModoIVA,        // 'sin' | 'agregar' | 'incluido'
+  tasaIVA, setTasaIVA,
+  ubicacion, setUbicacion,
+  recargoEstudio = 40, setRecargoEstudio,
+  cliente, setCliente,
+  precioHora, setPrecioHora,
+  horasEstimadas, setHorasEstimadas,
+  fotosEntregadas, setFotosEntregadas,
+  gastosViaticos, setGastosViaticos,
+  imprimirPresupuestoPDF,
+}) {
+  const infoPais = PAISES[pais] || PAISES.OTRO;
+  const nombreImpuesto = infoPais.impuesto;
+
+  const { subtotal, iva, total, recargo } = calcularPresupuesto({
+    precioHora, horasEstimadas, gastosViaticos, ubicacion, recargoEstudio, modoIVA, tasaIVA,
+  });
+
+  const handlePais = (codigo) => {
+    const p = PAISES[codigo];
+    setPais(codigo);
+    setMoneda(p.moneda);
+    setTasaIVA(p.iva);
+    if (p.iva === 0) setModoIVA('sin');
+    else if (modoIVA === 'sin') setModoIVA('agregar');
+  };
 
   return (
     <div className="tab-pane animate-fade-in">
-      <div className="glass-card equipment-section">
-        <h3 className="section-title">📷 {t.equipo}</h3>
-        <div className="grid-inputs">
-          <div className="form-group">
-            <label>{t.camara}</label>
-            <div className="select-wrapper">
-              <select value={tipoCamara} onChange={(e) => setTipoCamara(e.target.value)} className="modern-select">
-                <option value="Full Frame (DSLR/Mirrorless)">📷 Full Frame (35mm)</option>
-                <option value="APS-C / Recorte (Crop Sensor)">📸 APS-C / Crop Sensor</option>
-                <option value="Micro 4/3">🎥 Micro 4/3</option>
-                <option value="Formato Medio">🖼️ Formato Medio Pro</option>
-                <option value="Cámara de Smartphone Pro">📱 Smartphone RAW (Modo Pro)</option>
-              </select>
+      <div className="glass-card">
+        <h2 className="section-title">💼 {t.presupuestoTitulo}</h2>
+
+        <div className="biz-form">
+          {/* Bloque 1: País, moneda y cliente */}
+          <div className="form-section">
+            <h3 className="subsection-title">{t.datosGenerales || '1. País, moneda y cliente'}</h3>
+            <div className="grid-inputs">
+              <div className="form-group">
+                <label>{t.pais || 'País'}</label>
+                <select
+                  value={pais}
+                  onChange={(e) => handlePais(e.target.value)}
+                  className="modern-select"
+                >
+                  {Object.entries(PAISES).map(([codigo, p]) => (
+                    <option key={codigo} value={codigo}>{p.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>{t.moneda}</label>
+                <select
+                  value={moneda}
+                  onChange={(e) => setMoneda(e.target.value)}
+                  className="modern-select"
+                >
+                  {['USD', 'EUR', 'ARS', 'MXN', 'CLP', 'COP', 'PEN', 'UYU'].map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>{t.clienteProyecto}</label>
+              <input
+                type="text"
+                className="modern-input"
+                placeholder={t.clientePlaceholder}
+                value={cliente}
+                onChange={(e) => setCliente(e.target.value)}
+              />
             </div>
           </div>
 
-          <div className="form-group">
-            <label>{t.lente}</label>
-            <div className="select-wrapper">
-              <select value={lenteUsado} onChange={(e) => setLenteUsado(e.target.value)} className="modern-select">
-                <option value="50mm f/1.8 (Fijo Retrato)">🎯 50mm f/1.8 (Lente Fijo)</option>
-                <option value="85mm f/1.4 (Fijo Tele Corto)">👤 85mm f/1.4 (Retrato Pro)</option>
-                <option value="35mm f/1.4 (Fijo Angular)">🌆 35mm f/1.4 (Callejero)</option>
-                <option value="24-70mm f/2.8 (Zoom Todoterreno)">🔄 24-70mm f/2.8 (Zoom Todoterreno)</option>
-                <option value="70-200mm f/2.8 (Teleobjetivo)">🔭 70-200mm f/2.8 (Tele Zoom)</option>
-                <option value="100mm f/2.8 (Macro)">🔍 100mm f/2.8 Macro (1:1)</option>
-                <option value="14-24mm f/2.8 (Gran Angular)">🏔️ 14-24mm Gran Angular</option>
-                <option value="150-600mm (Super Tele Aves/Fauna)">🦅 150-600mm Super Tele</option>
-              </select>
+          <hr className="section-divider" />
+
+          {/* Bloque 2: Locación y valor de estudio */}
+          <div className="form-section">
+            <h3 className="subsection-title">{t.locacionTitulo || '2. Locación'}</h3>
+            <div className={ubicacion === 'estudio' ? 'grid-inputs' : 'form-group'}>
+              <div className="form-group">
+                <label>{t.locacion}</label>
+                <select
+                  value={ubicacion}
+                  onChange={(e) => setUbicacion(e.target.value)}
+                  className="modern-select"
+                >
+                  <option value="exteriores">{t.exteriores}</option>
+                  <option value="estudio">{t.estudioPro}</option>
+                </select>
+              </div>
+
+              {ubicacion === 'estudio' && (
+                <div className="form-group">
+                  <label>{t.valorEstudio || 'Valor estudio'} ({moneda}):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    inputMode="decimal"
+                    className="modern-input"
+                    value={recargoEstudio}
+                    onChange={(e) => setRecargoEstudio?.(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+            <small className="hint">
+              {ubicacion === 'estudio'
+                ? (t.ayudaEstudio || 'Se suma el valor indicado para el uso de estudio.')
+                : (t.ayudaExteriores || 'En exteriores no se aplica recargo adicional de estudio.')}
+            </small>
+          </div>
+
+          <hr className="section-divider" />
+
+          {/* Bloque 3: Tiempo, entrega y extras */}
+          <div className="form-section">
+            <h3 className="subsection-title">{t.detalleTrabajo || '3. Tarifa, horas y extras'}</h3>
+            <div className="grid-inputs">
+              <div className="form-group">
+                <label>{t.tarifaHora} ({moneda}):</label>
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  className="modern-input"
+                  value={precioHora}
+                  onChange={(e) => setPrecioHora(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t.horasCobertura}</label>
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  className="modern-input"
+                  value={horasEstimadas}
+                  onChange={(e) => setHorasEstimadas(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid-inputs">
+              <div className="form-group">
+                <label>{t.fotosEntregadas}</label>
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  className="modern-input"
+                  value={fotosEntregadas}
+                  onChange={(e) => setFotosEntregadas(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t.viaticosExtras} ({moneda}):</label>
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  className="modern-input"
+                  value={gastosViaticos}
+                  onChange={(e) => setGastosViaticos(e.target.value)}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="section-block">
-        <h4 className="sub-title">{t.luzAmbiente}</h4>
-        <div className="cards-grid-4">
-          {luces.map((item) => (
-            <button
-              key={item.id}
-              className={`light-card ${condicionLuz === item.id ? 'active' : ''}`}
-              onClick={() => setCondicionLuz(item.id)}
-            >
-              <span className="light-icon">{item.icon}</span>
-              <span className="light-label">{item.label}</span>
+          <hr className="section-divider" />
+
+          {/* Bloque 4: Impuestos */}
+          <div className="form-section">
+            <h3 className="subsection-title">{nombreImpuesto}</h3>
+            <div className="grid-inputs">
+              <div className="form-group">
+                <label>{t.modoImpuesto || `Aplicación de ${nombreImpuesto}`}</label>
+                <select
+                  value={modoIVA}
+                  onChange={(e) => setModoIVA(e.target.value)}
+                  className="modern-select"
+                >
+                  <option value="sin">{t.sinIVA || `Sin ${nombreImpuesto}`}</option>
+                  <option value="agregar">{t.agregarIVA || `Agregar ${nombreImpuesto} al precio`}</option>
+                  <option value="incluido">{t.ivaIncluido || `${nombreImpuesto} ya incluido en el precio`}</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>{t.tasa || 'Tasa'} (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  inputMode="decimal"
+                  className="modern-input"
+                  value={tasaIVA}
+                  disabled={modoIVA === 'sin'}
+                  onChange={(e) => setTasaIVA(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {pais === 'US' && (
+              <small className="hint">
+                {t.notaUS || 'EE. UU. no tiene IVA federal; el sales tax depende del estado y los servicios suelen estar exentos. Ajustá la tasa si corresponde.'}
+              </small>
+            )}
+          </div>
+
+          {/* Desglose — ✅ SIN estilos inline */}
+          <div className="total-box">
+            {ubicacion === 'estudio' && recargo > 0 && (
+              <div className="desglose-row">
+                <span>{t.valorEstudio || 'Valor estudio'}</span>
+                <span>{formatearMoneda(recargo, moneda)}</span>
+              </div>
+            )}
+
+            {modoIVA !== 'sin' && (
+              <>
+                <div className="desglose-row">
+                  <span>{t.subtotal || 'Subtotal'}</span>
+                  <span>{formatearMoneda(subtotal, moneda)}</span>
+                </div>
+                <div className="desglose-row">
+                  <span>{nombreImpuesto} ({num(tasaIVA)}%)</span>
+                  <span>{formatearMoneda(iva, moneda)}</span>
+                </div>
+                <div className="desglose-divider" aria-hidden="true" />
+              </>
+            )}
+
+            <div className="desglose-row desglose-total">
+              <span>{t.presupuestoFinal}</span>
+              <span className="price">{formatearMoneda(total, moneda)}</span>
+            </div>
+          </div>
+
+          {/* Acciones */}
+          <div className="actions-bar">
+            <button type="button" className="btn-pdf" onClick={imprimirPresupuestoPDF}>
+              📄 {t.generarPDF}
             </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="section-block">
-        <h4 className="sub-title">{t.tecnicaEscena}</h4>
-        <div className="chips-scroll-container">
-          {Object.keys(baseTecnicas).map((key) => (
-            <button 
-              key={key} 
-              className={`modern-chip ${tecnica === key ? 'active' : ''}`}
-              onClick={() => setTecnica(key)}
-            >
-              {baseTecnicas[key].nombre}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="glass-card readout-hero-card">
-        <div className="readout-header">
-          <div>
-            <span className="badge-category">{datosTecnica.nombre.toUpperCase()}</span>
-            <h2 className="hero-title">{t.parametrosIdeales}</h2>
           </div>
-          <span className="tomas-badge">📸 {datosTecnica.tomasRecomendadas}</span>
-        </div>
-
-        {luzNoRecomendada && (
-          <div className="tip-banner">
-            <span className="tip-icon">⚠️</span>
-            <p>
-              {es
-                ? `Esta técnica funciona mejor con otra luz. Te mostramos los valores sugeridos para ${luzIdealInfo ? luzIdealInfo.label : datosTecnica.luzIdeal}.`
-                : `This technique works best with different light. Showing suggested values for ${luzIdealInfo ? luzIdealInfo.label : datosTecnica.luzIdeal}.`}
-            </p>
-          </div>
-        )}
-
-        <div className="exposure-grid">
-          <div className="readout-item">
-            <span className="readout-label">{t.apertura}</span>
-            <span className="readout-value highlight-cyan">{ajusteActual.f}</span>
-            <span className="readout-sub">Diafragma (f)</span>
-          </div>
-          <div className="readout-item">
-            <span className="readout-label">{t.velocidad}</span>
-            <span className="readout-value highlight-orange">{ajusteActual.v}</span>
-            <span className="readout-sub">Obturación (s)</span>
-          </div>
-          <div className="readout-item">
-            <span className="readout-label">{t.sensibilidad}</span>
-            <span className="readout-value highlight-green">{ajusteActual.iso}</span>
-            <span className="readout-sub">ISO</span>
-          </div>
-        </div>
-
-        <div className="flash-banner">
-          <span className="flash-icon">⚡</span>
-          <div>
-            <strong>{t.configFlash}</strong>
-            <p>{ajusteActual.flash}</p>
-          </div>
-        </div>
-
-        <div className="tip-banner">
-          <span className="tip-icon">💡</span>
-          <p><strong>{t.tecnicaCeroEdicion}</strong> {ajusteActual.tip}</p>
-        </div>
-
-        {datosTecnica.equipo && (
-          <div className="tip-banner">
-            <span className="tip-icon">🎒</span>
-            <p><strong>{es ? 'Equipo sugerido:' : 'Suggested gear:'}</strong> {datosTecnica.equipo}</p>
-          </div>
-        )}
-
-        {datosTecnica.consejos && datosTecnica.consejos.length > 0 && (
-          <div className="tip-banner" style={{ alignItems: 'flex-start' }}>
-            <span className="tip-icon">✅</span>
-            <div>
-              <strong>{es ? 'Checklist para que salga bien' : 'Checklist for a great shot'}</strong>
-              <ul style={{ margin: '8px 0 0', paddingLeft: '18px', lineHeight: 1.5 }}>
-                {datosTecnica.consejos.map((c, i) => (
-                  <li key={i} style={{ marginBottom: '6px' }}>{c}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        <div className="action-box">
-          <input 
-            type="text" 
-            className="modern-input"
-            placeholder={t.notaPlaceholder} 
-            value={nota} 
-            onChange={(e) => setNota(e.target.value)}
-          />
-          <button className="btn-hero-action" onClick={registrarTomaDirecta}>
-            <span>{t.guardarToma}</span>
-          </button>
         </div>
       </div>
     </div>
