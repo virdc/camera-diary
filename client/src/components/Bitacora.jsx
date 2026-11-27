@@ -6,6 +6,8 @@ export default function Bitacora({
   borrarRegistro,
   exportarExcel,
   onVolverAjustes,
+  onUsarEnAjustes,
+  onIrPresupuesto,
 }) {
   const lista = Array.isArray(registros) ? registros : [];
 
@@ -13,7 +15,6 @@ export default function Bitacora({
     <div className="tab-pane animate-fade-in">
       <div className="glass-card">
 
-        {/* Header — sin estilos inline */}
         <div className="bitacora-header">
           <div>
             <h2 className="section-title">
@@ -36,6 +37,15 @@ export default function Bitacora({
                 ➕ {t.nuevaToma || 'Nueva toma'}
               </button>
             )}
+            {typeof onIrPresupuesto === 'function' && (
+              <button
+                type="button"
+                className="aj-btn-sec"
+                onClick={onIrPresupuesto}
+              >
+                💼 {t.presupuesto || 'Presupuesto'}
+              </button>
+            )}
             <button
               type="button"
               className="btn-excel"
@@ -48,7 +58,6 @@ export default function Bitacora({
           </div>
         </div>
 
-        {/* Lista */}
         <div className="history-list">
           {lista.length === 0 ? (
             <p className="empty-msg">
@@ -59,7 +68,6 @@ export default function Bitacora({
               const numeroToma = lista.length - index;
               return (
                 <article className="history-card" key={item.id ?? `${item.fecha}-${item.hora}-${index}`}>
-                  {/* minWidth: 0 evita que el contenido empuje el botón fuera */}
                   <div className="history-content">
                     <div className="card-top">
                       <span className="badge">#{numeroToma} · {item.tecnica}</span>
@@ -96,6 +104,18 @@ export default function Bitacora({
 
                     {item.nota && (
                       <div className="card-note">📝 {item.nota}</div>
+                    )}
+
+                    {typeof onUsarEnAjustes === 'function' && (
+                      <div className="aj-acciones">
+                        <button
+                          type="button"
+                          className="aj-btn-sec"
+                          onClick={() => onUsarEnAjustes(item)}
+                        >
+                          🎯 {t.usarEnAjustes || 'Cargar en Ajustes'}
+                        </button>
+                      </div>
                     )}
                   </div>
 

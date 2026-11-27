@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 
 // Tasas generales vigentes. Son editables en pantalla por si el caso es especial.
 export const PAISES = {
@@ -78,7 +78,13 @@ export default function Presupuesto({
   fotosEntregadas, setFotosEntregadas,
   gastosViaticos, setGastosViaticos,
   imprimirPresupuestoPDF,
+  ctxToma,
+  totalRegistros,
+  onIrAjustes,
+  onIrBitacora,
 }) {
+  const uid = useId();
+  const idDe = (nombre) => `${uid}-${nombre}`;
   const [valorEstudioLocal, setValorEstudioLocal] = useState('');
 
   const valorEstudio = recargoEstudio !== undefined ? recargoEstudio : valorEstudioLocal;
@@ -122,14 +128,41 @@ export default function Presupuesto({
   return (
     <div className="tab-pane animate-fade-in">
       <div className="glass-card">
-        <h2 className="section-title">💼 {t.presupuestoTitulo}</h2>
+        <div className="bitacora-header">
+          <div>
+            <h2 className="section-title">💼 {t.presupuestoTitulo || 'Presupuesto'}</h2>
+            {ctxToma && (
+              <small className="hint">
+                Sesión actual: {ctxToma.lugar === 'estudio' ? 'Estudio' : 'Exteriores'} ·{' '}
+                {totalRegistros ?? 0} {totalRegistros === 1 ? 'toma' : 'tomas'} en bitácora
+              </small>
+            )}
+          </div>
+
+          {(typeof onIrAjustes === 'function' || typeof onIrBitacora === 'function') && (
+            <div className="aj-acciones">
+              {typeof onIrAjustes === 'function' && (
+                <button type="button" className="aj-btn-sec" onClick={onIrAjustes}>
+                  🎯 {t.ajustes || 'Ajustes de toma'}
+                </button>
+              )}
+              {typeof onIrBitacora === 'function' && (
+                <button type="button" className="aj-btn-sec" onClick={onIrBitacora}>
+                  📝 {t.bitacora || 'Ver bitácora'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="biz-form">
 
           {/* País + Moneda */}
           <div className="grid-inputs">
             <div className="form-group">
-              <label>{t.pais || 'País'}</label>
+              <label htmlFor={idDe('pais')}>{t.pais || 'País'}</label>
               <select
+                id={idDe('pais')}
                 value={pais}
                 onChange={(e) => handlePais(e.target.value)}
                 className="modern-select"
@@ -140,8 +173,9 @@ export default function Presupuesto({
               </select>
             </div>
             <div className="form-group">
-              <label>{t.moneda}</label>
+              <label htmlFor={idDe('moneda')}>{t.moneda || 'Moneda'}</label>
               <select
+                id={idDe('moneda')}
                 value={moneda}
                 onChange={(e) => setMoneda(e.target.value)}
                 className="modern-select"
@@ -156,8 +190,9 @@ export default function Presupuesto({
           {/* Locación + Valor de estudio */}
           <div className={ubicacion === 'estudio' ? 'grid-inputs' : 'form-group'}>
             <div className="form-group">
-              <label>{t.locacion}</label>
+              <label htmlFor={idDe('ubicacion')}>{t.locacion || 'Locación'}</label>
               <select
+                id={idDe('ubicacion')}
                 value={ubicacion}
                 onChange={(e) => handleUbicacion(e.target.value)}
                 className="modern-select"
@@ -168,8 +203,11 @@ export default function Presupuesto({
             </div>
             {ubicacion === 'estudio' && (
               <div className="form-group">
-                <label>{t.valorEstudio || 'Costo de estudio'} ({moneda}):</label>
+                <label htmlFor={idDe('estudio')}>
+                  {t.valorEstudio || 'Costo de estudio'} ({moneda}):
+                </label>
                 <input
+                  id={idDe('estudio')}
                   type="number"
                   min="0"
                   step="any"
@@ -185,11 +223,12 @@ export default function Presupuesto({
 
           {/* Cliente */}
           <div className="form-group">
-            <label>{t.clienteProyecto}</label>
+            <label htmlFor={idDe('cliente')}>{t.clienteProyecto || 'Cliente / Proyecto'}</label>
             <input
+              id={idDe('cliente')}
               type="text"
               className="modern-input"
-              placeholder={t.clientePlaceholder}
+              placeholder={t.clientePlaceholder || 'Nombre del cliente o marca'}
               value={cliente}
               onChange={(e) => setCliente(e.target.value)}
             />
@@ -198,8 +237,11 @@ export default function Presupuesto({
           {/* Tarifa + Horas */}
           <div className="grid-inputs">
             <div className="form-group">
-              <label>{t.tarifaHora} ({moneda}):</label>
+              <label htmlFor={idDe('tarifa')}>
+                {t.tarifaHora || 'Tarifa por hora'} ({moneda}):
+              </label>
               <input
+                id={idDe('tarifa')}
                 type="number"
                 min="0"
                 inputMode="decimal"
@@ -209,8 +251,9 @@ export default function Presupuesto({
               />
             </div>
             <div className="form-group">
-              <label>{t.horasCobertura}</label>
+              <label htmlFor={idDe('horas')}>{t.horasCobertura || 'Horas estimadas'}</label>
               <input
+                id={idDe('horas')}
                 type="number"
                 min="0"
                 inputMode="decimal"
@@ -224,8 +267,9 @@ export default function Presupuesto({
           {/* Fotos + Viáticos */}
           <div className="grid-inputs">
             <div className="form-group">
-              <label>{t.fotosEntregadas}</label>
+              <label htmlFor={idDe('fotos')}>{t.fotosEntregadas || 'Fotos entregadas'}</label>
               <input
+                id={idDe('fotos')}
                 type="number"
                 min="0"
                 inputMode="numeric"
@@ -235,8 +279,11 @@ export default function Presupuesto({
               />
             </div>
             <div className="form-group">
-              <label>{t.viaticosExtras} ({moneda}):</label>
+              <label htmlFor={idDe('viaticos')}>
+                {t.viaticosExtras || 'Viáticos / extras'} ({moneda}):
+              </label>
               <input
+                id={idDe('viaticos')}
                 type="number"
                 min="0"
                 inputMode="decimal"
@@ -250,8 +297,9 @@ export default function Presupuesto({
           {/* Impuestos */}
           <div className="grid-inputs">
             <div className="form-group">
-              <label>{nombreImpuesto}</label>
+              <label htmlFor={idDe('modo-iva')}>{nombreImpuesto}</label>
               <select
+                id={idDe('modo-iva')}
                 value={modoIVA}
                 onChange={(e) => setModoIVA(e.target.value)}
                 className="modern-select"
@@ -262,8 +310,9 @@ export default function Presupuesto({
               </select>
             </div>
             <div className="form-group">
-              <label>{t.tasa || 'Tasa'} (%)</label>
+              <label htmlFor={idDe('tasa-iva')}>{t.tasa || 'Tasa'} (%)</label>
               <input
+                id={idDe('tasa-iva')}
                 type="number"
                 min="0"
                 step="0.5"
@@ -306,14 +355,14 @@ export default function Presupuesto({
             )}
 
             <div className="desglose-row desglose-total">
-              <span>{t.presupuestoFinal}</span>
+              <span>{t.presupuestoFinal || 'Total estimado'}</span>
               <span className="price">{formatearMoneda(total, moneda)}</span>
             </div>
           </div>
 
           {/* Botón PDF */}
-          <button className="btn-pdf" onClick={imprimirPresupuestoPDF}>
-            📄 {t.generarPDF}
+          <button type="button" className="btn-pdf" onClick={imprimirPresupuestoPDF}>
+            📄 {t.generarPDF || 'Generar presupuesto PDF'}
           </button>
         </div>
       </div>
