@@ -2,87 +2,84 @@ import React, { useState } from 'react';
 
 export const TIPOS_CAMARA = [
   { id: 'smartphone_raw', nombre: 'Smartphone RAW' },
-  { id: 'full_frame', nombre: 'Full Frame (FF)' },
-  { id: 'aps_c', nombre: 'APS-C (DSLR / Mirrorless)' },
-  { id: 'micro_4_3', nombre: 'Micro Cuatro Tercios (M4/3)' },
+  { id: 'dslr_aps_c', nombre: 'DSLR / Mirrorless APS-C' },
+  { id: 'full_frame', nombre: 'Full Frame' },
+  { id: 'micro_4_3', nombre: 'Micro Cuatro Tercios' },
   { id: 'formato_medio', nombre: 'Formato Medio' },
   { id: 'compacta_bridge', nombre: 'Compacta / Bridge' },
-  { id: 'analogica_film', nombre: 'Analógica / Film (35mm / 120)' },
+  { id: 'analogica_film', nombre: 'Analógica / Film' },
+];
+
+export const LENTES_COMUNES = [
+  { id: '35mm_fijo', nombre: '35mm fijo' },
+  { id: '55mm_fijo', nombre: '55mm fijo' },
+  { id: 'lente_kit', nombre: 'Lente del kit (18-55mm)' },
+  { id: 'tele_70_300', nombre: '70-300mm (Tele)' },
+];
+
+export const LENTES_SMARTPHONE = [
+  { id: 'sin_lente_agregado', nombre: 'Sin lente agregado (cámara nativa del celular)' },
+  { id: 'con_lente_agregado', nombre: 'Con lente agregado (gran angular / macro / tele)' },
+  { id: '35mm_fijo', nombre: '35mm fijo (equivalente)' },
+  { id: '55mm_fijo', nombre: '55mm fijo (equivalente)' },
+  { id: 'lente_kit', nombre: 'Lente del kit / modo zoom estándar' },
+  { id: 'tele_70_300', nombre: '70-300mm (equivalente / tele acoplado)' },
 ];
 
 export const LENTES_POR_CAMARA = {
-  smartphone_raw: [
-    { id: 'sin_lente_nativo', nombre: 'Cámara del celular (sin lente agregado)' },
-    { id: 'principal_1x', nombre: 'Principal nativa (1x / ~24-26mm eq.)' },
-    { id: 'gran_angular_05x', nombre: 'Ultra gran angular nativa (0.5x / ~13-14mm eq.)' },
-    { id: 'tele_2x_3x', nombre: 'Teleobjetivo integrado (2x / 3x / ~50-77mm eq.)' },
-    { id: 'periscopio_5x', nombre: 'Tele periscópico integrado (5x / ~120mm eq.)' },
-    { id: 'macro_celular', nombre: 'Lente / modo macro del celular' },
-    { id: 'lente_externo_clip', nombre: 'Lente externo acoplado (gran angular / tele / macro / anamórfico)' },
-  ],
-  full_frame: [
-    { id: '14_24', nombre: '14-24mm f/2.8 (Ultra gran angular zoom)' },
-    { id: '24mm', nombre: '24mm f/1.4 (Gran angular)' },
-    { id: '35mm', nombre: '35mm f/1.4 (Gran angular / Calle)' },
-    { id: '50mm', nombre: '50mm f/1.4 (Normal)' },
-    { id: '85mm', nombre: '85mm f/1.4 (Retrato)' },
-    { id: '24_70', nombre: '24-70mm f/2.8 (Estándar zoom)' },
-    { id: '70_200', nombre: '70-200mm f/2.8 (Tele zoom)' },
-    { id: '90_macro', nombre: '90mm / 100mm f/2.8 Macro' },
-    { id: '150_600', nombre: '150-600mm (Supertele / Luna / Fauna)' },
-  ],
-  aps_c: [
-    { id: '10_18', nombre: '10-18mm f/4 (15-27mm eq. Ultra gran angular)' },
-    { id: '16mm', nombre: '16mm f/1.4 (~24mm eq.)' },
-    { id: '23mm', nombre: '23mm f/1.4 (~35mm eq.)' },
-    { id: '35mm', nombre: '35mm f/1.4 (~50-52mm eq.)' },
-    { id: '56mm', nombre: '56mm f/1.2 (~84-85mm eq. Retrato)' },
-    { id: '18_55', nombre: '18-55mm / 17-50mm f/2.8 (~27-82mm eq.)' },
-    { id: '55_250', nombre: '55-250mm / 70-300mm (~82-375mm eq. Tele)' },
-    { id: '60_macro', nombre: '60mm Macro (~90mm eq.)' },
-  ],
-  micro_4_3: [
-    { id: '7_14', nombre: '7-14mm f/2.8 (14-28mm eq. Ultra gran angular)' },
-    { id: '12mm', nombre: '12mm f/1.4 (24mm eq.)' },
-    { id: '17mm', nombre: '17mm f/1.8 (34mm eq.)' },
-    { id: '25mm', nombre: '25mm f/1.4 (50mm eq.)' },
-    { id: '42_5mm', nombre: '42.5mm f/1.2 (85mm eq. Retrato)' },
-    { id: '12_40', nombre: '12-40mm f/2.8 (24-80mm eq.)' },
-    { id: '40_150', nombre: '40-150mm f/2.8 (80-300mm eq.)' },
-    { id: '60_macro_m43', nombre: '60mm Macro (120mm eq.)' },
-    { id: '100_400', nombre: '100-400mm (200-800mm eq. Luna)' },
-  ],
-  formato_medio: [
-    { id: '23_30mm', nombre: '23mm / 30mm (Gran angular)' },
-    { id: '45_55mm', nombre: '45mm / 55mm (Normal)' },
-    { id: '80mm', nombre: '80mm f/1.9 (Estándar)' },
-    { id: '110mm', nombre: '110mm f/2 (Retrato)' },
-    { id: '120mm_macro', nombre: '120mm Macro' },
-  ],
-  compacta_bridge: [
-    { id: 'optica_fija', nombre: 'Óptica fija integrada' },
-    { id: 'zoom_integrado', nombre: 'Zoom óptico integrado' },
-    { id: 'conversor_gran_angular', nombre: 'Conversor gran angular acoplado' },
-    { id: 'conversor_tele', nombre: 'Conversor teleobjetivo acoplado' },
-  ],
-  analogica_film: [
-    { id: '28mm_film', nombre: '28mm (Gran angular / Calle)' },
-    { id: '35mm_film', nombre: '35mm (Documental / Calle)' },
-    { id: '50mm_film', nombre: '50mm (Normal)' },
-    { id: '85mm_film', nombre: '85mm / 105mm (Retrato)' },
-    { id: '135mm_film', nombre: '135mm / 200mm (Tele)' },
-    { id: 'lente_nativo_120', nombre: 'Lente nativo de formato 120 (ej. 80mm)' },
-  ],
+  smartphone_raw: LENTES_SMARTPHONE,
+  dslr_aps_c: LENTES_COMUNES,
+  full_frame: LENTES_COMUNES,
+  micro_4_3: LENTES_COMUNES,
+  formato_medio: LENTES_COMUNES,
+  compacta_bridge: LENTES_COMUNES,
+  analogica_film: LENTES_COMUNES,
 };
 
+export const FORMAS_SMARTPHONE = [
+  {
+    id: 'sin_lente',
+    titulo: 'Sin lente agregado (cámara nativa)',
+    formasSacar: [
+      'Cámara principal 1x en RAW/DNG: encuadre natural, mayor rango dinámico y mejor detalle en luz media/baja.',
+      'Modo retrato / 2x con distancia media: separá el sujeto del fondo alejándote un poco y evitando pegar la cara a la lente.',
+      'Trípode + temporizador o disparador: clave en tomas nocturnas, arquitectura o detalle sin trepidación.',
+    ],
+    config: {
+      apertura: 'f/1.7 - f/2.2 (fija del sensor nativo)',
+      obturacion: '1/125s - 1/500s (1/60s+ en trípode)',
+      iso: 'ISO 50 - 200 (evitar ISO alto en RAW)',
+      enfoque: 'AF-S puntual / toque en el sujeto o MF',
+      medicion: 'Puntual / Matricial en luces altas',
+      wb: '5200K - 5600K o Flash 5500K',
+      flash: 'Luz continua suave o flash externo rebotado/difundido (evitar flash directo duro)',
+    },
+  },
+  {
+    id: 'con_lente',
+    titulo: 'Con lente agregado (clip / rosca / adaptador)',
+    formasSacar: [
+      'Gran angular / 35mm acoplado: espacios reducidos, escenas completas o encuadres ambientales controlando bordes.',
+      '55mm / Tele 70-300mm acoplado: retratos más comprimidos y detalles a distancia cuidando el apoyo.',
+      'Lente macro acoplado: acercamiento cercano con foco manual o distancia fija sin forzar el zoom digital.',
+    ],
+    config: {
+      apertura: 'f/2 - f/4 (según óptica acoplada)',
+      obturacion: '1/200s - 1/500s (más rápido en tele para evitar trepidación)',
+      iso: 'ISO 50 - 400',
+      enfoque: 'MF / AF puntual al centro (evitar bordes si hay curvatura)',
+      medicion: 'Puntual / Ponderada al centro',
+      wb: '5200K - 5600K o Flash 5500K',
+      flash: 'Flash externo / luz LED lateral (evitar que el lente o el aro hagan sombra)',
+    },
+  },
+];
+
 export const TIPOS_LUZ = [
-  { id: 'luz_natural_dia', nombre: 'Luz natural de día', wbRef: '5200K - 5600K' },
-  { id: 'luz_dorada', nombre: 'Golden hour / Atardecer', wbRef: '4500K - 5200K' },
-  { id: 'sombra_nublado', nombre: 'Sombra / Día nublado', wbRef: '6000K - 6800K' },
-  { id: 'luz_mixta_urbana', nombre: 'Luz mixta urbana / Nocturna', wbRef: '3600K - 4500K' },
-  { id: 'tungsteno_interior', nombre: 'Luz cálida interior / Tungsteno', wbRef: '2800K - 3200K' },
-  { id: 'flash_estudio_strobe', nombre: 'Flash / Strobe de estudio', wbRef: '5500K' },
-  { id: 'flash_camara_fill', nombre: 'Flash en cámara / Relleno', wbRef: '5500K' },
+  { id: 'flash_estudio', nombre: 'Flash de estudio (Strobe)', wbRef: '5500K' },
+  { id: 'luz_continua_estudio', nombre: 'Luz continua de estudio (LED)', wbRef: '5200K - 5600K' },
+  { id: 'flash_camara', nombre: 'Flash en cámara / Speedlight', wbRef: '5500K' },
+  { id: 'luz_mixta_estudio', nombre: 'Luz mixta en estudio', wbRef: '4500K - 5500K' },
 ];
 
 export const CONFIGS_TIPO_FOTO = [
@@ -95,8 +92,8 @@ export const CONFIGS_TIPO_FOTO = [
     iso: '64 - 200',
     enfoque: 'AF-C / Seguimiento continuo',
     medicion: 'Matricial / Evaluativa',
-    wb: 'Luz de día (5200K - 5500K)',
-    tip: 'Seguí el sujeto suavemente al mismo ritmo mientras disparás: el sujeto queda nítido y el fondo sale barrido con sensación de velocidad.',
+    wb: '5200K - 5500K',
+    tip: 'Seguí el movimiento parejo del sujeto y usá 2ª cortina si sumás flash.',
   },
   {
     id: 'luna',
@@ -105,82 +102,70 @@ export const CONFIGS_TIPO_FOTO = [
     apertura: 'f/8 - f/11',
     obturacion: '1/125s - 1/250s',
     iso: '100 - 200',
-    enfoque: 'AF-S / Manual (MF) con Live View',
-    medicion: 'Puntual (en la Luna)',
-    wb: 'Luz de día (5200K - 5600K)',
-    tip: 'La Luna está iluminada por el sol: no subas el ISO por ser de noche o se quema el detalle de cráteres. Usá trípode y disparador o temporizador.',
+    enfoque: 'MF con Live View / AF-S puntual',
+    medicion: 'Puntual sobre la Luna',
+    wb: '5200K - 5600K',
+    tip: 'Exponé para la Luna y usá trípode + disparador/temporizador.',
   },
   {
     id: 'retrato',
     nombre: 'Retrato',
     icono: '👤',
-    apertura: 'f/1.8 - f/2.8',
-    obturacion: '1/160s - 1/250s',
+    apertura: 'f/2.8 - f/5.6',
+    obturacion: '1/125s - 1/200s',
     iso: '100 - 400',
-    enfoque: 'AF-C al ojo (Eye-AF)',
-    medicion: 'Matricial / Evaluativa',
-    wb: 'Auto / Nublado (6000K) o Luz de flash',
-    tip: 'Priorizá foco nítido en el ojo más cercano a la cámara y mantené velocidad suficiente para evitar trepidación.',
+    enfoque: 'AF-C al ojo / AF-S puntual',
+    medicion: 'Matricial / Puntual',
+    wb: '5500K (Flash) / 5200K - 5600K',
+    tip: 'Foco en el ojo más cercano y modificador suave para piel.',
   },
   {
     id: 'paisaje',
-    nombre: 'Paisaje',
+    nombre: 'Paisaje / Escenografía',
     icono: '🏔️',
     apertura: 'f/8 - f/11',
-    obturacion: '1/60s o trípode',
+    obturacion: '1/60s - 1/125s (o trípode)',
     iso: '64 - 200',
     enfoque: 'Hiperfocal / AF-S',
     medicion: 'Matricial / Evaluativa',
-    wb: 'Luz de día (5200K - 5500K)',
-    tip: 'Usá trípode si bajás la velocidad y evitá aperturas extremas como f/22 si notás difracción.',
-  },
-  {
-    id: 'calle',
-    nombre: 'Calle / Documental',
-    icono: '🚶',
-    apertura: 'f/4 - f/8',
-    obturacion: '1/250s - 1/500s',
-    iso: 'Auto (100 - 1600)',
-    enfoque: 'AF-C / Zona o distancia hiperfocal',
-    medicion: 'Matricial / Ponderada al centro',
-    wb: 'Auto',
-    tip: 'Con 1/250s o más congelás pasos y movimientos cotidianos sin perder profundidad de campo.',
+    wb: '5200K - 5500K',
+    tip: 'Buscá profundidad de campo pareja de adelante hacia atrás.',
   },
   {
     id: 'producto',
-    nombre: 'Producto / Estudio',
+    nombre: 'Producto',
     icono: '📦',
-    apertura: 'f/8 - f/11',
-    obturacion: '1/125s - 1/200s (sync flash)',
+    apertura: 'f/8 - f/16',
+    obturacion: '1/125s - 1/200s',
     iso: '64 - 100',
-    enfoque: 'Manual (MF) o AF-S puntual',
+    enfoque: 'MF / AF-S puntual',
     medicion: 'Puntual / Matricial',
-    wb: 'Personalizado / Flash (5500K)',
-    tip: 'Asegurate de no superar la velocidad máxima de sincronización de flash de tu cámara.',
+    wb: '5500K',
+    tip: 'Controlá reflejos y brillos con difusores o banderas.',
   },
   {
     id: 'deporte',
-    nombre: 'Deporte / Acción',
+    nombre: 'Acción / Movimiento',
     icono: '⚡',
-    apertura: 'f/2.8 - f/4',
-    obturacion: '1/1000s - 1/2000s',
-    iso: 'Auto (400 - 3200)',
+    apertura: 'f/4 - f/8',
+    obturacion: '1/200s (sync) o 1/1000s+',
+    iso: '200 - 1600',
     enfoque: 'AF-C seguimiento continuo',
     medicion: 'Matricial',
-    wb: 'Auto / Luz de día',
-    tip: 'Subí el ISO antes de bajar la velocidad por debajo de 1/500s si hay movimiento rápido.',
+    wb: '5500K',
+    tip: 'Con flash en estudio respetá la velocidad máxima de sincronización.',
   },
   {
     id: 'macro',
     nombre: 'Macro / Detalle',
     icono: '🔍',
     apertura: 'f/8 - f/16',
-    obturacion: '1/200s o flash difuso',
+    obturacion: '1/125s - 1/200s',
     iso: '100 - 400',
-    enfoque: 'Manual (MF) acercando/alejando cuerpo',
+    enfoque: 'MF / AF puntual',
     medicion: 'Puntual',
-    wb: 'Luz de día / Flash',
-    tip: 'A corta distancia la profundidad de campo es mínima; cerrá diafragma para ganar zona enfocable.',
+    wb: '5500K',
+    tip: 'Cerrá diafragma para ganar zona nítida en detalles chicos.',
   },
 ];
 
@@ -188,112 +173,121 @@ const getNombreCamara = (id) =>
   TIPOS_CAMARA.find((c) => c.id === id)?.nombre || id || '—';
 
 const getNombreLente = (camaraId, lenteId) => {
-  if (camaraId === 'smartphone_raw' && (!lenteId || lenteId === 'sin_lente_nativo')) {
-    return 'Solo cámara del celular (sin lente agregado)';
-  }
-  const lista = LENTES_POR_CAMARA[camaraId] || [];
+  const lista = LENTES_POR_CAMARA[camaraId] || LENTES_COMUNES;
   return lista.find((l) => l.id === lenteId)?.nombre || lenteId || '—';
 };
 
 const getNombreLuz = (luzId) =>
   TIPOS_LUZ.find((item) => item.id === luzId)?.nombre || luzId || '—';
 
-function getConfigFlashRecomendada({ camara, lente, lugar, tipoLuz, usaFlash }) {
-  if (!usaFlash) {
-    return {
-      modo: 'Sin flash',
-      potencia: 'N/A',
-      zoomCabezal: 'N/A',
-      sincronizacion: 'Luz disponible / continua',
-      nota:
-        lugar === 'estudio'
-          ? 'Trabajás en estudio sin flash: usá luz continua o luz natural controlada y cuidá la velocidad de obturación.'
-          : 'Sin flash: ajustá ISO y obturación según la luz ambiente y el movimiento del sujeto.',
-    };
-  }
-
+function getConfigCombinada({ camara, lente, tipoFoto, tipoLuz, usaFlash }) {
   const esSmartphone = camara === 'smartphone_raw';
-  const esEstudio = lugar === 'estudio';
-  const esMacro = ['macro_celular', '90_macro', '60_macro', '60_macro_m43', '120mm_macro'].includes(lente);
-  const esTele = ['tele_2x_3x', 'periscopio_5x', '70_200', '150_600', '55_250', '40_150', '100_400', '135mm_film'].includes(lente);
-  const esAngular = ['sin_lente_nativo', 'principal_1x', 'gran_angular_05x', '14_24', '24mm', '35mm', '10_18', '16mm', '23mm', '7_14', '12mm', '17mm', '23_30mm', '28mm_film', '35mm_film'].includes(lente);
+  const esTele = lente === 'tele_70_300';
+  const esFijo55 = lente === '55mm_fijo';
+  const esFijo35 = lente === '35mm_fijo';
+  const esKit = lente === 'lente_kit';
+
+  let aperturaSugerida =
+    tipoFoto === 'retrato'
+      ? esFijo55
+        ? 'f/2.8 - f/4'
+        : esFijo35
+        ? 'f/2.8 - f/5.6'
+        : esKit
+        ? 'f/4 - f/5.6'
+        : 'f/4 - f/5.6'
+      : tipoFoto === 'barrido' || tipoFoto === 'luna' || tipoFoto === 'paisaje' || tipoFoto === 'producto' || tipoFoto === 'macro'
+      ? 'f/8 - f/11'
+      : 'f/4 - f/8';
 
   if (esSmartphone) {
-    return {
-      modo: 'Luz de apoyo / LED continuo o flash externo sincronizado',
-      potencia: esEstudio ? 'Baja a media (evitar reflejos en RAW)' : 'Relleno suave (-1 a -1.5 EV)',
-      zoomCabezal: esTele ? 'Concentrada / snoot' : 'Amplia / difusa',
-      sincronizacion: 'Velocidad moderada (evitar barridos no deseados)',
-      nota:
-        'En Smartphone RAW el flash nativo del celular suele ser duro y chico: si podés, usá un difusor o luz continua externa.',
-    };
+    aperturaSugerida =
+      lente === 'sin_lente_agregado'
+        ? 'Nativa del celular (f/1.7 - f/2.2)'
+        : 'Óptica acoplada (f/2 - f/5.6)';
   }
 
-  if (esEstudio) {
-    return {
-      modo: 'Manual (M) o TTL con modificador (softbox / octabox / sombrilla)',
-      potencia: esMacro ? '1/64 - 1/16 (cerca del sujeto)' : '1/8 - 1/2 según distancia y f/',
-      zoomCabezal: esTele ? '70mm - 105mm o reflector concentrado' : '24mm - 50mm / cobertura de modificador',
-      sincronizacion: 'Normal (1/125s - 1/200s, dentro del límite de sync)',
-      nota:
-        'En estudio tenés control total de luz: medí con fotómetro o revisá el histograma y la velocidad máxima de sincronización.',
-    };
+  let obturacionSugerida =
+    tipoFoto === 'barrido'
+      ? '1/15s - 1/60s'
+      : tipoFoto === 'luna'
+      ? '1/125s - 1/250s'
+      : esTele
+      ? '1/200s - 1/320s (cuidado con trepidación)'
+      : '1/125s - 1/200s (sync estudio)';
+
+  if (esSmartphone && lente === 'sin_lente_agregado') {
+    obturacionSugerida = tipoFoto === 'barrido' ? '1/30s - 1/60s' : '1/125s - 1/500s';
   }
 
-  if (esMacro) {
-    return {
-      modo: 'TTL o Manual con difusor macro / twin flash',
-      potencia: '1/64 - 1/16 (muy cerca del motivo)',
-      zoomCabezal: 'Cabezal macro / difusor frontal',
-      sincronizacion: '1/160s - 1/200s (o HSS si hay mucho sol)',
-      nota:
-        'En macro la distancia es mínima: usá difusor amplio para no quemar brillos y mantener nitidez.',
-    };
-  }
+  const flashConfig = !usaFlash
+    ? {
+        estado: 'Sin flash (Estudio)',
+        modo: tipoLuz === 'luz_continua_estudio' ? 'Luz continua LED' : 'Luz disponible de estudio',
+        potencia: 'Ajustar intensidad de luz continua + ISO/velocidad',
+        modificador: esFijo35 || esKit ? 'Panel LED / softbox amplio' : 'Softbox / octabox dirigido',
+        nota: 'En estudio sin flash, controlá el movimiento cuidando la velocidad de obturación y usá trípode si bajás la velocidad.',
+      }
+    : esSmartphone
+    ? {
+        estado: 'Con flash / luz de apoyo (Smartphone RAW)',
+        modo: lente === 'sin_lente_agregado' ? 'Luz continua o flash externo difuso' : 'Flash externo / LED lateral (sin tapar lente)',
+        potencia: lente === 'sin_lente_agregado' ? 'Suave / baja (-1 a -1.5 EV)' : 'Baja a media (evitar sombras del clip)',
+        modificador: 'Difusor / softbox chico',
+        nota:
+          lente === 'sin_lente_agregado'
+            ? 'Sin lente agregado: evitá el flash directo duro del celular y priorizá luz continua o difusa.'
+            : 'Con lente agregado: verificá que el accesorio acoplado no genere sombra sobre el encuadre.',
+      }
+    : {
+        estado: `Con flash (${getNombreLuz(tipoLuz)})`,
+        modo: tipoFoto === 'barrido' ? 'Manual (M) + 2ª cortina' : 'Manual (M) o TTL de estudio',
+        potencia:
+          esTele
+            ? '1/4 - 1/1 (mayor distancia en 70-300mm)'
+            : esFijo55 || esFijo35
+            ? '1/8 - 1/2 según distancia y apertura'
+            : '1/8 - 1/4 (18-55mm kit en estudio)',
+        modificador:
+          esTele
+            ? 'Reflector / snoot / octabox concentrado'
+            : esFijo35 || esKit
+            ? 'Softbox / octabox mediano-grande'
+            : 'Octabox / softbox para retrato o producto',
+        nota: `Combinación activa en Estudio: ${getNombreCamara(camara)} + ${getNombreLente(camara, lente)} + ${tipoFoto}. Mantené la velocidad dentro de la sincronización del flash.`,
+      };
 
   return {
-    modo: tipoLuz === 'luz_natural_dia' || tipoLuz === 'luz_dorada' ? 'HSS / Relleno (Fill Flash)' : 'TTL / Manual de relleno',
-    potencia: esTele ? '1/4 - 1/1 (mayor alcance en tele)' : esAngular ? '1/16 - 1/4 (cobertura amplia)' : '1/8 - 1/2',
-    zoomCabezal: esTele ? '70mm - 135mm (mayor alcance)' : esAngular ? '24mm - 35mm (con difusor)' : '50mm',
-    sincronizacion: tipoLuz === 'luz_natural_dia' ? 'HSS (si superás 1/200s) o 1/200s' : '1/125s - 1/200s (2ª cortina si hay movimiento)',
-    nota:
-      lugar === 'exteriores'
-        ? 'En exteriores el flash sirve para levantar sombras o equilibrar contraluz sin congelar de más el ambiente.'
-        : 'Ajustá el rebote o la potencia según el techo y las paredes del lugar.',
+    aperturaSugerida,
+    obturacionSugerida,
+    flashConfig,
   };
 }
 
 export default function Ajustes({
   t = {},
-  camara = 'smartphone_raw',
+  camara = 'dslr_aps_c',
   setCamara,
-  lente = 'sin_lente_nativo',
+  lente = '35mm_fijo',
   setLente,
-  tipoFoto = 'barrido',
+  tipoFoto = 'retrato',
   setTipoFoto,
-  lugar = 'exteriores',
-  setLugar,
-  tipoLuz = 'luz_natural_dia',
+  tipoLuz = 'flash_estudio',
   setTipoLuz,
-  usaFlash = false,
+  usaFlash = true,
   setUsaFlash,
   configToma,
   setConfigToma,
   onAplicarPreset,
   onGuardar,
 }) {
+  const lugarFijo = 'estudio';
+
   const [presetSeleccionadoId, setPresetSeleccionadoId] = useState(
-    CONFIGS_TIPO_FOTO.find((item) => item.id === tipoFoto)?.id || 'barrido'
+    CONFIGS_TIPO_FOTO.find((item) => item.id === tipoFoto)?.id || 'retrato'
   );
-  const [lugarLocal, setLugarLocal] = useState(lugar);
   const [luzLocal, setLuzLocal] = useState(tipoLuz);
   const [flashLocal, setFlashLocal] = useState(Boolean(usaFlash));
-
-  const lugarActual = setLugar ? lugar : lugarLocal;
-  const cambiarLugar = (nuevoLugar) => {
-    setLugarLocal(nuevoLugar);
-    setLugar?.(nuevoLugar);
-  };
 
   const luzActual = setTipoLuz ? tipoLuz : luzLocal;
   const cambiarLuz = (nuevaLuz) => {
@@ -314,17 +308,17 @@ export default function Ajustes({
     setUsaFlash?.(estadoFlash);
   };
 
-  const lentesDisponibles = LENTES_POR_CAMARA[camara] || LENTES_POR_CAMARA.full_frame;
+  const lentesDisponibles = LENTES_POR_CAMARA[camara] || LENTES_COMUNES;
   const presetActivo =
     CONFIGS_TIPO_FOTO.find((item) => item.id === presetSeleccionadoId) || CONFIGS_TIPO_FOTO[0];
 
   const handleCamaraChange = (nuevaCamara) => {
     setCamara?.(nuevaCamara);
-    const nuevosLentes = LENTES_POR_CAMARA[nuevaCamara] || [];
+    const nuevosLentes = LENTES_POR_CAMARA[nuevaCamara] || LENTES_COMUNES;
     if (nuevaCamara === 'smartphone_raw') {
-      setLente?.('sin_lente_nativo');
-    } else if (nuevosLentes.length > 0 && !nuevosLentes.some((item) => item.id === lente)) {
-      setLente?.(nuevosLentes[0].id);
+      setLente?.('sin_lente_agregado');
+    } else if (!nuevosLentes.some((item) => item.id === lente)) {
+      setLente?.('35mm_fijo');
     }
   };
 
@@ -362,27 +356,36 @@ export default function Ajustes({
     }
   };
 
-  const configFlash = getConfigFlashRecomendada({
+  const combinada = getConfigCombinada({
     camara,
     lente,
-    lugar: lugarActual,
+    tipoFoto: presetActivo.id,
     tipoLuz: luzActual,
     usaFlash: flashActual,
   });
 
   return (
     <div className="tab-pane animate-fade-in">
-      {/* Tarjeta 1: Cámara y Lente */}
+      {/* 1. Cámara y Lente (Estudio) */}
       <div className="glass-card">
-        <h2 className="section-title">⚙️ {t.ajustesTitulo || 'Ajustes de equipo'}</h2>
+        <h2 className="section-title">⚙️ {t.ajustesTitulo || 'Ajustes de Estudio'}</h2>
 
         <div className="biz-form">
           <div className="form-section">
-            <h3 className="subsection-title">
-              {t.equipoYOptica || '1. Tipo de cámara y lente'}
-            </h3>
+            <h3 className="subsection-title">1. Lugar: Estudio · Cámara y lente</h3>
 
             <div className="grid-inputs">
+              <div className="form-group">
+                <label>{t.locacion || 'Lugar'}</label>
+                <select
+                  value={lugarFijo}
+                  disabled
+                  className="modern-select"
+                >
+                  <option value="estudio">{t.estudioPro || 'Estudio'}</option>
+                </select>
+              </div>
+
               <div className="form-group">
                 <label>{t.tipoCamara || 'Tipo de cámara'}</label>
                 <select
@@ -397,52 +400,48 @@ export default function Ajustes({
                   ))}
                 </select>
               </div>
-
-              <div className="form-group">
-                <label>{t.lente || 'Lente / Óptica'}</label>
-                <select
-                  value={lente}
-                  onChange={(e) => setLente?.(e.target.value)}
-                  className="modern-select"
-                >
-                  {lentesDisponibles.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
-            <small className="hint">
-              {camara === 'smartphone_raw'
-                ? 'En Smartphone RAW se usa la cámara del teléfono; dejá "Cámara del celular (sin lente agregado)" si no colocaste ningún lente extra.'
-                : 'Seleccioná el tipo de cámara y la lente o distancia focal que vas a usar.'}
-            </small>
+            <div className="form-group">
+              <label>{t.lente || 'Lente / Óptica'}</label>
+              <select
+                value={lente}
+                onChange={(e) => setLente?.(e.target.value)}
+                className="modern-select"
+              >
+                {lentesDisponibles.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div className="param-item">
-              <span className="param-label">Equipo activo</span>
+              <span className="param-label">Lugar</span>
+              <span className="param-value">Estudio</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Cámara</span>
               <span className="param-value">{getNombreCamara(camara)}</span>
             </div>
             <div className="param-item">
-              <span className="param-label">Óptica</span>
+              <span className="param-label">Lente</span>
               <span className="param-value">{getNombreLente(camara, lente)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tarjeta 2: Tipo de fotografía y valores base */}
+      {/* 2. Configuración por tipo de toma + combinación con cámara, lente y flash */}
       <div className="glass-card">
         <h2 className="section-title">
-          🎯 {t.configsPorTipoFoto || 'Configuración según tipo de foto'}
+          🎯 {t.configsPorTipoFoto || 'Configuración por toma y equipo'}
         </h2>
 
         <div className="biz-form">
           <div className="form-section">
-            <h3 className="subsection-title">
-              2. Elegí el tipo de foto (Barrido, Luna, Retrato, etc.)
-            </h3>
+            <h3 className="subsection-title">2. Elegí el tipo de toma</h3>
 
             <div className="btn-toggle-group">
               {CONFIGS_TIPO_FOTO.map((preset) => {
@@ -462,7 +461,7 @@ export default function Ajustes({
             </div>
 
             <small className="hint">
-              <strong>Consejo para {presetActivo.nombre}:</strong> {presetActivo.tip}
+              <strong>Guía ({presetActivo.nombre}):</strong> {presetActivo.tip}
             </small>
           </div>
 
@@ -470,12 +469,39 @@ export default function Ajustes({
 
           <div className="form-section">
             <h3 className="subsection-title">
-              3. Valores de referencia para {presetActivo.nombre}
+              3. Configuración para {presetActivo.nombre} con {getNombreCamara(camara)} y {getNombreLente(camara, lente)}
             </h3>
+
+            <div className="param-item">
+              <span className="param-label">Apertura sugerida</span>
+              <span className="param-value">{combinada.aperturaSugerida}</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Obturación sugerida</span>
+              <span className="param-value">{combinada.obturacionSugerida}</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Flash / Luz</span>
+              <span className="param-value">{combinada.flashConfig.modo}</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Potencia / Modificador</span>
+              <span className="param-value">
+                {combinada.flashConfig.potencia} · {combinada.flashConfig.modificador}
+              </span>
+            </div>
+
+            <small className="hint">{combinada.flashConfig.nota}</small>
+          </div>
+
+          <hr className="section-divider" />
+
+          <div className="form-section">
+            <h3 className="subsection-title">4. Ajuste manual de valores de toma</h3>
 
             <div className="grid-inputs">
               <div className="form-group">
-                <label>Apertura / Diafragma</label>
+                <label>Apertura</label>
                 <input
                   type="text"
                   className="modern-input"
@@ -497,7 +523,7 @@ export default function Ajustes({
 
             <div className="grid-inputs">
               <div className="form-group">
-                <label>ISO recomendado</label>
+                <label>ISO</label>
                 <input
                   type="text"
                   className="modern-input"
@@ -529,7 +555,7 @@ export default function Ajustes({
               </div>
 
               <div className="form-group">
-                <label>Medición de luz</label>
+                <label>Medición</label>
                 <input
                   type="text"
                   className="modern-input"
@@ -542,45 +568,29 @@ export default function Ajustes({
         </div>
       </div>
 
-      {/* Tarjeta 3: Tipos de luz y configuración de flash */}
+      {/* 3. Luz, Flash y Smartphone RAW (sin lente vs con lente agregado) */}
       <div className="glass-card">
         <h2 className="section-title">
-          💡 {t.iluminacionYFlash || 'Iluminación, lugar y flash'}
+          💡 {t.iluminacionYFlash || 'Luz, flash y Smartphone RAW'}
         </h2>
 
         <div className="biz-form">
           <div className="form-section">
-            <h3 className="subsection-title">
-              4. Lugar, tipo de luz y uso de flash
-            </h3>
+            <h3 className="subsection-title">5. Tipo de luz y uso de flash en estudio</h3>
 
-            <div className="grid-inputs">
-              <div className="form-group">
-                <label>{t.locacion || 'Lugar'}</label>
-                <select
-                  value={lugarActual}
-                  onChange={(e) => cambiarLugar(e.target.value)}
-                  className="modern-select"
-                >
-                  <option value="exteriores">{t.exteriores || 'Exteriores'}</option>
-                  <option value="estudio">{t.estudioPro || 'Estudio'}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>{t.tipoLuz || 'Tipo de luz'}</label>
-                <select
-                  value={luzActual}
-                  onChange={(e) => cambiarLuz(e.target.value)}
-                  className="modern-select"
-                >
-                  {TIPOS_LUZ.map((luz) => (
-                    <option key={luz.id} value={luz.id}>
-                      {luz.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="form-group">
+              <label>{t.tipoLuz || 'Tipo de luz'}</label>
+              <select
+                value={luzActual}
+                onChange={(e) => cambiarLuz(e.target.value)}
+                className="modern-select"
+              >
+                {TIPOS_LUZ.map((luz) => (
+                  <option key={luz.id} value={luz.id}>
+                    {luz.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="btn-toggle-group">
@@ -599,37 +609,66 @@ export default function Ajustes({
                 ⚡ Con flash
               </button>
             </div>
+
+            <div className="param-item">
+              <span className="param-label">Configuración</span>
+              <span className="param-value">{combinada.flashConfig.estado}</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Modo</span>
+              <span className="param-value">{combinada.flashConfig.modo}</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Potencia</span>
+              <span className="param-value">{combinada.flashConfig.potencia}</span>
+            </div>
+            <div className="param-item">
+              <span className="param-label">Modificador</span>
+              <span className="param-value">{combinada.flashConfig.modificador}</span>
+            </div>
           </div>
 
           <hr className="section-divider" />
 
           <div className="form-section">
             <h3 className="subsection-title">
-              5. Configuración recomendada de flash ({getNombreCamara(camara)} · {getNombreLuz(luzActual)})
+              6. Smartphone RAW: sin lente agregado vs. con lente agregado
             </h3>
 
-            <div className="param-item">
-              <span className="param-label">Óptica</span>
-              <span className="param-value">{getNombreLente(camara, lente)}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Modo de flash</span>
-              <span className="param-value">{configFlash.modo}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Potencia sugerida</span>
-              <span className="param-value">{configFlash.potencia}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Cabezal / Modificador</span>
-              <span className="param-value">{configFlash.zoomCabezal}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Sincronización</span>
-              <span className="param-value">{configFlash.sincronizacion}</span>
-            </div>
-
-            <small className="hint">{configFlash.nota}</small>
+            {FORMAS_SMARTPHONE.map((bloque) => (
+              <div key={bloque.id} className="form-section">
+                <h4 className="subsection-title">{bloque.titulo}</h4>
+                <ul className="hint">
+                  {bloque.formasSacar.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+                <div className="param-item">
+                  <span className="param-label">Apertura</span>
+                  <span className="param-value">{bloque.config.apertura}</span>
+                </div>
+                <div className="param-item">
+                  <span className="param-label">Obturación</span>
+                  <span className="param-value">{bloque.config.obturacion}</span>
+                </div>
+                <div className="param-item">
+                  <span className="param-label">ISO</span>
+                  <span className="param-value">{bloque.config.iso}</span>
+                </div>
+                <div className="param-item">
+                  <span className="param-label">Enfoque / Medición</span>
+                  <span className="param-value">
+                    {bloque.config.enfoque} · {bloque.config.medicion}
+                  </span>
+                </div>
+                <div className="param-item">
+                  <span className="param-label">WB / Flash</span>
+                  <span className="param-value">
+                    {bloque.config.wb} · {bloque.config.flash}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
 
           {typeof onGuardar === 'function' && (

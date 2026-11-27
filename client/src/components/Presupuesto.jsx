@@ -65,7 +65,7 @@ export function formatearMoneda(valor, moneda) {
 }
 
 export default function Presupuesto({
-  t,
+  t = {},
   pais, setPais,
   moneda, setMoneda,
   modoIVA, setModoIVA,        // 'sin' | 'agregar' | 'incluido'
@@ -162,8 +162,8 @@ export default function Presupuesto({
                 onChange={(e) => handleUbicacion(e.target.value)}
                 className="modern-select"
               >
-                <option value="exteriores">{t.exteriores}</option>
-                <option value="estudio">{t.estudioPro}</option>
+                <option value="exteriores">{t.exteriores || 'Exteriores'}</option>
+                <option value="estudio">{t.estudio || 'Estudio'}</option>
               </select>
             </div>
             {ubicacion === 'estudio' && (
@@ -175,7 +175,7 @@ export default function Presupuesto({
                   step="any"
                   inputMode="decimal"
                   className="modern-input"
-                  placeholder={t.placeholderEstudio || 'Ej. 50000'}
+                  placeholder={t.placeholderEstudio || 'Ingresá el valor'}
                   value={valorEstudio}
                   onChange={(e) => actualizarValorEstudio(e.target.value)}
                 />
