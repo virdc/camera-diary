@@ -1,14 +1,14 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
- 
+
 /* ============================================================
    DATOS (ESTUDIO + EXTERIORES)
    ============================================================ */
- 
+
 export const LUGARES = [
   { id: 'estudio', nombre: 'Estudio', icono: '🏢', ayuda: 'Luz controlada en estudio: flash o luces continuas.' },
   { id: 'exterior', nombre: 'Exteriores', icono: '🌳', ayuda: 'Luz natural: mandan el sol, las nubes y la hora del día. El flash sólo como relleno.' },
 ];
- 
+
 // crop = factor de recorte respecto de full frame (null = no aplica)
 export const TIPOS_CAMARA = [
   { id: 'smartphone_raw', nombre: 'Smartphone RAW', crop: 1, nota: 'Disparar en RAW/DNG y bloquear exposición y foco (toque largo) evita sorpresas entre fotos.' },
@@ -21,9 +21,9 @@ export const TIPOS_CAMARA = [
   { id: 'compacta_bridge', nombre: 'Compacta / Bridge', crop: null, nota: 'Sensor chico: gran profundidad de campo. Para desenfocar, alejá el fondo y usá el zoom.' },
   { id: 'analogica_film', nombre: 'Analógica / Film', crop: 1, nota: 'Película: no hay revisión inmediata. En negativo color conviene sobreexponer ~1 paso.' },
 ];
- 
+
 const L = (id, nombre, focal, focalMax, cats) => ({ id, nombre, focal, focalMax, cats });
- 
+
 export const LENTES_COMUNES = [
   L('14_24', 'Gran angular 14-24mm', 14, 24, ['ancho']),
   L('24mm_fijo', '24mm fijo', 24, 24, ['ancho']),
@@ -38,7 +38,7 @@ export const LENTES_COMUNES = [
   L('tele_70_300', '70-300mm (Tele)', 70, 300, ['tele']),
   L('super_tele', 'Super tele 150-600mm', 150, 600, ['tele']),
 ];
- 
+
 // En smartphone las focales son equivalentes a full frame
 export const LENTES_SMARTPHONE = [
   { id: 'sin_lente_agregado', nombre: 'Sin lente agregado (cámara nativa del celular)', focal: 24, focalMax: 24, cats: ['normal', 'ancho'], aperturaFija: 'Nativa del celular (f/1.7 - f/2.2)' },
@@ -51,11 +51,11 @@ export const LENTES_SMARTPHONE = [
   { id: 'lente_kit', nombre: 'Lente del kit / modo zoom estándar', focal: 24, focalMax: 70, cats: ['ancho', 'normal', 'retrato'] },
   { id: 'tele_70_300', nombre: '70-300mm (equivalente / tele acoplado)', focal: 70, focalMax: 300, cats: ['tele'] },
 ];
- 
+
 const LENTES_COMPACTA = [
   { id: 'zoom_integrado', nombre: 'Zoom integrado de la cámara', focal: null, focalMax: null, cats: ['ancho', 'normal', 'retrato', 'tele', 'macro'] },
 ];
- 
+
 export const LENTES_POR_CAMARA = {
   smartphone_raw: LENTES_SMARTPHONE,
   dslr_aps_c: LENTES_COMUNES,
@@ -67,7 +67,7 @@ export const LENTES_POR_CAMARA = {
   compacta_bridge: LENTES_COMPACTA,
   analogica_film: LENTES_COMUNES,
 };
- 
+
 export const FORMAS_SMARTPHONE = [
   {
     id: 'sin_lente',
@@ -106,7 +106,7 @@ export const FORMAS_SMARTPHONE = [
     },
   },
 ];
- 
+
 export const TIPOS_LUZ = [
   { id: 'flash_estudio', nombre: 'Flash de estudio (Strobe)', wbRef: '5500K', nota: 'La potencia del flash controla la exposición; la apertura controla la profundidad de campo.' },
   { id: 'luz_continua_estudio', nombre: 'Luz continua de estudio (LED)', wbRef: '5200K - 5600K', nota: 'Lo que ves es lo que sacás: compensá con ISO y velocidad de obturación.' },
@@ -114,7 +114,7 @@ export const TIPOS_LUZ = [
   { id: 'luz_mixta_estudio', nombre: 'Luz mixta en estudio', wbRef: '4500K - 5500K', nota: 'Mezclar fuentes de distinta temperatura da tonos raros: igualalas o corregí con geles CTO/CTB.' },
   { id: 'luz_ventana', nombre: 'Luz de ventana (natural en interior)', wbRef: '5500K - 6500K', nota: 'Ubicá al sujeto a 1-2 m de la ventana y un reflector del lado opuesto.' },
 ];
- 
+
 export const TIPOS_LUZ_EXTERIOR = [
   { id: 'sol_directo', nombre: 'Sol directo (mediodía)', wbRef: '5200K - 5600K', nota: 'Sombras duras: buscá sombra abierta, usá un difusor o un reflector/flash de relleno. Regla "Sunny 16": f/16 y 1/ISO.' },
   { id: 'nublado_sombra', nombre: 'Nublado / sombra abierta', wbRef: '6000K - 7000K', nota: 'Luz suave y pareja, ideal para pieles. Subí un poco la temperatura de WB si las fotos salen frías.' },
@@ -123,9 +123,9 @@ export const TIPOS_LUZ_EXTERIOR = [
   { id: 'noche_luna', nombre: 'Noche / cielo despejado', wbRef: '3800K - 4500K', nota: 'Alejate de luces de ciudad y usá trípode. Revisá el histograma, no la pantalla.' },
   { id: 'luz_artificial_noche', nombre: 'Luces de ciudad (nocturna)', wbRef: '3200K - 4000K', nota: 'Mezcla de fuentes (sodio, LED, neón): disparar en RAW para corregir el WB después.' },
 ];
- 
+
 const LUCES_POR_LUGAR = { estudio: TIPOS_LUZ, exterior: TIPOS_LUZ_EXTERIOR };
- 
+
 export const CONFIGS_TIPO_FOTO = [
   {
     id: 'retrato', nombre: 'Retrato', icono: '👤', lugares: ['estudio', 'exterior'], rec: ['retrato'],
@@ -203,7 +203,7 @@ export const CONFIGS_TIPO_FOTO = [
     },
   },
 ];
- 
+
 const APERTURA_RETRATO_POR_LENTE = {
   '85mm_fijo': 'f/2 - f/4',
   '55mm_fijo': 'f/2.8 - f/4',
@@ -215,7 +215,7 @@ const APERTURA_RETRATO_POR_LENTE = {
   tele_70_300: 'f/4 - f/5.6',
   macro_100: 'f/4 - f/8',
 };
- 
+
 const MODIFICADOR_ESTUDIO = {
   retrato: 'Octabox / beauty dish',
   moda: 'Octabox / beauty dish',
@@ -225,13 +225,15 @@ const MODIFICADOR_ESTUDIO = {
   deporte: 'Octabox / reflector estándar',
   barrido: 'Softbox / reflector estándar',
 };
- 
+
 const CAMPOS_TOMA = ['apertura', 'obturacion', 'iso', 'wb', 'enfoque', 'medicion'];
- 
+const ES_DSLR = ['dslr_aps_c', 'full_frame'];
+const ES_MIRRORLESS = ['mirrorless_aps_c', 'mirrorless_full_frame', 'micro_4_3'];
+
 /* ============================================================
    HELPERS
    ============================================================ */
- 
+
 const presetsDeLugar = (lugar) => CONFIGS_TIPO_FOTO.filter((p) => p.lugares.includes(lugar));
 const presetEnLugar = (preset, lugar) => ({ ...preset, ...(preset[lugar] || {}) });
 const getCamara = (id) => TIPOS_CAMARA.find((c) => c.id === id) || TIPOS_CAMARA[1];
@@ -242,7 +244,7 @@ const getLente = (camaraId, lenteId) => {
 const familiaCamara = (id) => (id === 'smartphone_raw' ? 'phone' : id === 'compacta_bridge' ? 'compacta' : 'ilc');
 const lentePorDefecto = (camaraId) =>
   camaraId === 'smartphone_raw' ? 'sin_lente_agregado' : camaraId === 'compacta_bridge' ? 'zoom_integrado' : '35mm_fijo';
- 
+
 function normalizarContexto(ctx) {
   const lugar = LUGARES.some((l) => l.id === ctx.lugar) ? ctx.lugar : 'estudio';
   const camara = TIPOS_CAMARA.some((c) => c.id === ctx.camara) ? ctx.camara : 'dslr_aps_c';
@@ -252,11 +254,10 @@ function normalizarContexto(ctx) {
   const tipoLuz = luces.some((l) => l.id === ctx.tipoLuz) ? ctx.tipoLuz : luces[0].id;
   const presets = presetsDeLugar(lugar);
   const tipoFoto = presets.some((p) => p.id === ctx.tipoFoto) ? ctx.tipoFoto : presets[0].id;
-  // El flash no llega a la luna
   const usaFlash = tipoFoto === 'luna' ? false : Boolean(ctx.usaFlash);
   return { lugar, camara, lente, tipoLuz, tipoFoto, usaFlash };
 }
- 
+
 function resolver(ctx) {
   const luces = LUCES_POR_LUGAR[ctx.lugar] || TIPOS_LUZ;
   return {
@@ -267,26 +268,26 @@ function resolver(ctx) {
     luz: luces.find((l) => l.id === ctx.tipoLuz) || luces[0],
   };
 }
- 
+
 function velocidadMinima(focalEq) {
   const pasos = [30, 60, 125, 250, 500, 1000, 2000, 4000];
   return `1/${pasos.find((p) => p >= focalEq) ?? 4000}s`;
 }
- 
+
 function textoEquivalencia(cam, len) {
   if (!len.focal || !cam.crop || cam.crop === 1) return '';
   const a = Math.round(len.focal * cam.crop);
   const b = Math.round(len.focalMax * cam.crop);
   return a === b ? `≈ ${a}mm en full frame` : `≈ ${a}-${b}mm en full frame`;
 }
- 
+
 function calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash }) {
   const cats = len.cats || [];
   const esTele = cats.includes('tele');
   const esAncho = cats.includes('ancho');
   const nativo = Boolean(len.aperturaFija);
   const exterior = lugar === 'exterior';
- 
+
   if (preset.id === 'luna') {
     return {
       estado: 'Sin flash (Luna)',
@@ -296,7 +297,7 @@ function calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash }) {
       nota: 'El flash no llega: usá trípode y disparador remoto o temporizador de 2 s.',
     };
   }
- 
+
   if (!usaFlash) {
     if (exterior) {
       return {
@@ -315,7 +316,7 @@ function calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash }) {
       nota: 'Sin flash en estudio, controlá el movimiento con la velocidad de obturación y usá trípode si la bajás.',
     };
   }
- 
+
   if (esSmartphone) {
     return {
       estado: 'Con flash / luz de apoyo (Smartphone RAW)',
@@ -327,7 +328,7 @@ function calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash }) {
         : 'Con lente agregado: verificá que el accesorio acoplado no genere sombra sobre el encuadre.',
     };
   }
- 
+
   if (exterior) {
     return {
       estado: `Con flash de relleno (${luz.nombre})`,
@@ -337,7 +338,7 @@ function calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash }) {
       nota: 'A pleno sol el flash rellena sombras duras. Si la velocidad pasa la sincronización (1/160s - 1/250s) activá HSS.',
     };
   }
- 
+
   return {
     estado: `Con flash (${luz.nombre})`,
     modo: preset.id === 'barrido' ? 'Manual (M) + 2ª cortina' : 'Manual (M) o TTL de estudio',
@@ -350,42 +351,41 @@ function calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash }) {
     nota: 'Mantené la velocidad dentro de la sincronización del flash (normalmente 1/160s - 1/250s).',
   };
 }
- 
+
 function calcularConfig(ctx) {
   const { cam, len, preset, luz } = resolver(ctx);
   const { lugar, usaFlash } = ctx;
   const esSmartphone = ctx.camara === 'smartphone_raw';
   const esLuna = preset.id === 'luna';
   const base = presetEnLugar(preset, lugar);
- 
+
   let apertura = base.apertura;
   if (preset.id === 'retrato' && lugar === 'estudio' && APERTURA_RETRATO_POR_LENTE[len.id]) {
     apertura = APERTURA_RETRATO_POR_LENTE[len.id];
   }
   if (esSmartphone) apertura = len.aperturaFija || 'Óptica acoplada (f/2 - f/5.6)';
- 
+
   let obturacion = base.obturacion;
   if (usaFlash && !esSmartphone && base.obturacionFlash) obturacion = base.obturacionFlash;
- 
+
   const iso = cam.id === 'analogica_film' ? 'Según el rollo (ISO 100 - 400)' : base.iso;
   const wb = base.wbManda ? base.wb : luz.wbRef;
- 
+
   const flash = calcularFlash({ lugar, esSmartphone, len, preset, luz, usaFlash });
- 
+
   const consejos = [base.tip];
   if (luz.nota && !base.wbManda) consejos.push(luz.nota);
   if (cam.nota) consejos.push(cam.nota);
- 
+
   const focalEqMax = len.focalMax ? len.focalMax * (cam.crop ?? 1) : null;
   const flashDomina = usaFlash && lugar === 'estudio';
- 
+
   if (!preset.sinMinima && focalEqMax && !flashDomina) {
     consejos.push(`A mano alzada no bajes de ${velocidadMinima(focalEqMax)} con este lente, o activá la estabilización.`);
   }
- 
+
   if (esLuna) {
     if (focalEqMax) {
-      // Diámetro lunar ≈ 0,0087 × focal (mm) sobre un fotograma full frame de 24 mm de alto
       const pct = Math.max(1, Math.round((focalEqMax * 0.0087 * 100) / 24));
       consejos.push(
         pct < 10
@@ -404,7 +404,7 @@ function calcularConfig(ctx) {
   } else if (esSmartphone && lugar === 'exterior') {
     consejos.push('En exteriores, tocá y mantené el sujeto para bloquear foco y bajá la exposición si el cielo se quema.');
   }
- 
+
   if (esSmartphone && usaFlash && lugar === 'estudio') {
     consejos.push('Con flash de estudio, el celular puede mostrar bandas por el obturador electrónico: probá antes o preferí luz continua.');
   }
@@ -412,18 +412,22 @@ function calcularConfig(ctx) {
     consejos.push('En mirrorless el obturador electrónico completo puede no sincronizar con flash: usá el obturador mecánico o la primera cortina electrónica.');
   }
   consejos.push(flash.nota);
- 
+
   return { valores: { apertura, obturacion, iso, wb, enfoque: base.enfoque, medicion: base.medicion }, flash, consejos };
 }
- 
-const ES_DSLR = ['dslr_aps_c', 'full_frame'];
-const ES_MIRRORLESS = ['mirrorless_aps_c', 'mirrorless_full_frame', 'micro_4_3'];
- 
+
 const flashATexto = (f) => `${f.estado}: ${f.modo} · ${f.potencia} · ${f.modificador}`;
- 
+
 function useControlado(valor, setter, inicial) {
   const [local, setLocal] = useState(valor ?? inicial);
   const controlado = typeof setter === 'function';
+
+  useEffect(() => {
+    if (controlado && valor !== undefined && valor !== local) {
+      setLocal(valor);
+    }
+  }, [controlado, valor, local]);
+
   const actual = controlado ? valor ?? inicial : local;
   const cambiar = (nuevo) => {
     setLocal(nuevo);
@@ -431,7 +435,7 @@ function useControlado(valor, setter, inicial) {
   };
   return [actual, cambiar];
 }
- 
+
 function Campo({ id, label, valor, sugerido, onChange }) {
   const editado = valor !== sugerido;
   return (
@@ -452,30 +456,34 @@ function Campo({ id, label, valor, sugerido, onChange }) {
     </div>
   );
 }
- 
+
 const ESTILOS = `
 .aj-badge{display:inline-block;margin-left:.5rem;padding:.05rem .5rem;border-radius:999px;font-size:.72rem;background:rgba(127,127,127,.22)}
-.aj-lista{margin:.6rem 0 0;padding-left:1.1rem;display:grid;gap:.4rem}
+.aj-resumen-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(127,127,127,.28);background:rgba(127,127,127,.07);margin-bottom:1rem}
+.aj-resumen-chips{display:flex;flex-wrap:wrap;gap:.45rem;font-size:.86rem}
+.aj-chip{padding:.25rem .6rem;border-radius:999px;background:rgba(127,127,127,.14)}
+.aj-lista{margin:.5rem 0 0;padding-left:1.15rem;display:grid;gap:.35rem}
 .aj-acciones{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1rem}
-.aj-nota{margin-top:1rem}
-.aj-btn-sec{padding:.6rem 1rem;border-radius:10px;border:1px solid rgba(127,127,127,.45);background:transparent;color:inherit;cursor:pointer;font:inherit}
+.aj-nota{margin-top:.85rem}
+.aj-btn-sec{padding:.58rem .95rem;border-radius:10px;border:1px solid rgba(127,127,127,.45);background:transparent;color:inherit;cursor:pointer;font:inherit}
 .aj-btn-sec:hover{background:rgba(127,127,127,.14)}
 .aj-btn-sec:focus-visible,.btn-toggle:focus-visible,.btn-save:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .btn-toggle:disabled{opacity:.45;cursor:not-allowed}
-.aj-aviso{font-size:.9rem}
+.aj-aviso{font-size:.9rem;font-weight:500}
+.aj-contador{font-size:.82rem;opacity:.85}
 .aj-details{margin-top:.75rem;border:1px solid rgba(127,127,127,.3);border-radius:10px;padding:.5rem .9rem}
 .aj-details summary{cursor:pointer;font-weight:600;padding:.25rem 0}
 `;
- 
+
 /* ============================================================
    COMPONENTE
    ============================================================ */
- 
+
 export default function Ajustes(props) {
-  const { t = {}, onAplicarPreset, onGuardar } = props;
+  const { t = {}, onAplicarPreset, onGuardar, onIrBitacora } = props;
   const uid = useId();
   const idDe = (nombre) => `${uid}-${nombre}`;
- 
+
   const [lugar, setLugar] = useControlado(props.lugar, props.setLugar, 'estudio');
   const [camara, setCamara] = useControlado(props.camara, props.setCamara, 'dslr_aps_c');
   const [lente, setLente] = useControlado(props.lente, props.setLente, '35mm_fijo');
@@ -483,32 +491,33 @@ export default function Ajustes(props) {
   const [tipoLuz, setTipoLuz] = useControlado(props.tipoLuz, props.setTipoLuz, 'flash_estudio');
   const [usaFlashRaw, setUsaFlash] = useControlado(props.usaFlash, props.setUsaFlash, true);
   const [overrides, setOverrides] = useControlado(props.configToma, props.setConfigToma, {});
- 
+
+  const [etiquetaToma, setEtiquetaToma] = useState('');
   const [nota, setNota] = useState('');
   const [aviso, setAviso] = useState('');
+  const [tomasRegistradas, setTomasRegistradas] = useState(0);
   const timer = useRef(null);
   useEffect(() => () => clearTimeout(timer.current), []);
- 
+
   const ctx = normalizarContexto({ lugar, camara, lente, tipoFoto, tipoLuz, usaFlash: usaFlashRaw });
   const { lugarInfo, cam, len, preset, luz } = resolver(ctx);
   const presetVista = presetEnLugar(preset, ctx.lugar);
   const sugerencia = calcularConfig(ctx);
+
   const valores = {};
   CAMPOS_TOMA.forEach((k) => {
     valores[k] = overrides?.[k] ?? sugerencia.valores[k];
   });
   const hayEditados = CAMPOS_TOMA.some((k) => valores[k] !== sugerencia.valores[k]);
- 
+
   const aplicarCambios = (cambios) => {
     const extra = {};
     if (cambios.camara && familiaCamara(cambios.camara) !== familiaCamara(ctx.camara)) {
       extra.lente = lentePorDefecto(cambios.camara);
     }
-    // Estudio arranca con flash; exteriores sin flash
     if (cambios.lugar && cambios.lugar !== ctx.lugar) {
       extra.usaFlash = cambios.lugar === 'estudio';
     }
-    // La luna se fotografía de noche
     if (cambios.tipoFoto === 'luna' && !cambios.tipoLuz) {
       extra.tipoLuz = 'noche_luna';
     }
@@ -524,16 +533,16 @@ export default function Ajustes(props) {
       onAplicarPreset?.(presetEnLugar(CONFIGS_TIPO_FOTO.find((p) => p.id === nuevo.tipoFoto), nuevo.lugar));
     }
   };
- 
+
   const cambiarCampo = (campo, valor) => setOverrides({ ...valores, [campo]: valor });
   const restablecer = () => setOverrides({ ...sugerencia.valores });
- 
+
   const mostrarAviso = (texto) => {
     setAviso(texto);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setAviso(''), 2500);
+    timer.current = setTimeout(() => setAviso(''), 2800);
   };
- 
+
   const recomendado = (item) => item.cats?.some((c) => preset.rec?.includes(c));
   const equivalencia = textoEquivalencia(cam, len);
   const presetsDisponibles = presetsDeLugar(ctx.lugar);
@@ -542,10 +551,14 @@ export default function Ajustes(props) {
   const esSmartphone = ctx.camara === 'smartphone_raw';
   const esLuna = preset.id === 'luna';
   const bloqueActivo = len.aperturaFija ? 'sin_lente' : 'con_lente';
- 
+
+  const nombreTecnica = etiquetaToma.trim()
+    ? `${preset.nombre} (${etiquetaToma.trim()}) · ${lugarInfo.nombre}`
+    : `${preset.nombre} · ${lugarInfo.nombre}`;
+
   const resumenTexto = [
     `${lugarInfo.nombre} · ${cam.nombre} · ${len.nombre}`,
-    `Toma: ${preset.nombre}`,
+    `Toma: ${nombreTecnica}`,
     `Luz: ${luz.nombre}${ctx.usaFlash ? ' + flash' : ''}`,
     `Apertura: ${valores.apertura}`,
     `Obturación: ${valores.obturacion}`,
@@ -555,22 +568,22 @@ export default function Ajustes(props) {
     `Medición: ${valores.medicion}`,
     flashATexto(sugerencia.flash),
   ].join('\n');
- 
+
   const copiar = async () => {
     try {
       await navigator.clipboard.writeText(resumenTexto);
-      mostrarAviso('Resumen copiado');
+      mostrarAviso('Resumen copiado al portapapeles');
     } catch {
       mostrarAviso('No se pudo copiar');
     }
   };
- 
-  // Registro con el formato que muestra <Bitacora /> (y exporta a Excel)
-  const guardar = () => {
+
+  // Crea el registro exacto que espera <Bitacora />
+  const construirRegistro = () => {
     const ahora = new Date();
-    const registro = {
-      id: Date.now(),
-      tecnica: `${preset.nombre} · ${lugarInfo.nombre}`,
+    return {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      tecnica: nombreTecnica,
       luz: `${luz.nombre}${ctx.usaFlash ? ' + flash' : ''}`,
       fecha: ahora.toLocaleDateString('es-AR'),
       hora: ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
@@ -587,33 +600,68 @@ export default function Ajustes(props) {
       flash: flashATexto(sugerencia.flash),
       tomas: sugerencia.consejos.slice(0, 2).join(' '),
       nota: nota.trim(),
-      // Datos crudos por si se quieren reutilizar
+      // Datos estructurados por si otro módulo los reutiliza
       lugar: ctx.lugar,
       camaraId: ctx.camara,
       lenteId: ctx.lente,
       tipoFoto: ctx.tipoFoto,
       tipoLuz: ctx.tipoLuz,
       usaFlash: ctx.usaFlash,
-      config: valores,
+      config: { ...valores },
       flashDetalle: sugerencia.flash,
     };
-    onGuardar?.(registro);
-    setNota('');
-    mostrarAviso('Guardado en la bitácora');
   };
- 
+
+  const guardarToma = ({ irABitacora = false } = {}) => {
+    const registro = construirRegistro();
+    onGuardar?.(registro);
+    const nuevoConteo = tomasRegistradas + 1;
+    setTomasRegistradas(nuevoConteo);
+    setNota('');
+    mostrarAviso(`Toma #${nuevoConteo} guardada en la bitácora`);
+    if (irABitacora) {
+      onIrBitacora?.(registro);
+    }
+  };
+
   return (
     <div className="tab-pane animate-fade-in">
       <style>{ESTILOS}</style>
- 
-      {/* 1 y 2. Lugar, cámara y lente */}
+
       <div className="glass-card">
-        <h2 className="section-title">⚙️ {t.ajustesTitulo || 'Ajustes de toma'}</h2>
- 
+        <div className="bitacora-header">
+          <h2 className="section-title">⚙️ {t.ajustesTitulo || 'Ajustes y registro de tomas'}</h2>
+          <span className="aj-contador">
+            {tomasRegistradas > 0
+              ? `📸 ${tomasRegistradas} ${tomasRegistradas === 1 ? 'toma registrada' : 'tomas registradas'} en esta sesión`
+              : 'Listo para registrar tomas'}
+          </span>
+        </div>
+
+        {/* Resumen rápido siempre visible para chequear al instante */}
+        <div className="aj-resumen-bar" aria-label="Resumen de toma actual">
+          <div className="aj-resumen-chips">
+            <span className="aj-chip">{lugarInfo.icono} {lugarInfo.nombre}</span>
+            <span className="aj-chip">📷 {cam.nombre}</span>
+            <span className="aj-chip">🔍 {len.nombre}</span>
+            <span className="aj-chip">{preset.icono} {preset.nombre}</span>
+            <span className="aj-chip">⚡ {ctx.usaFlash ? 'Flash ON' : 'Sin flash'}</span>
+            <span className="aj-chip">🎛️ {valores.apertura} · {valores.obturacion} · {valores.iso}</span>
+          </div>
+          <button
+            type="button"
+            className="btn-save"
+            onClick={() => guardarToma({ irABitacora: false })}
+          >
+            ➕ {t.registrarToma || 'Registrar toma'}
+          </button>
+        </div>
+
         <div className="biz-form">
+          {/* 1. Lugar y tipo de toma */}
           <div className="form-section">
-            <h3 className="subsection-title">1. Lugar</h3>
- 
+            <h3 className="subsection-title">1. Lugar y tipo de toma</h3>
+
             <div className="btn-toggle-group" role="group" aria-label="Lugar">
               {LUGARES.map((l) => {
                 const activo = l.id === ctx.lugar;
@@ -631,13 +679,34 @@ export default function Ajustes(props) {
               })}
             </div>
             <small className="hint">{lugarInfo.ayuda}</small>
+
+            <div className="aj-nota">
+              <div className="btn-toggle-group" role="group" aria-label="Tipo de toma">
+                {presetsDisponibles.map((p) => {
+                  const activo = p.id === ctx.tipoFoto;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`btn-toggle ${activo ? 'active' : ''}`}
+                      aria-pressed={activo}
+                      onClick={() => aplicarCambios({ tipoFoto: p.id })}
+                    >
+                      {p.icono} {p.nombre}
+                    </button>
+                  );
+                })}
+              </div>
+              {presetVista.tip && <small className="hint">{presetVista.tip}</small>}
+            </div>
           </div>
- 
+
           <hr className="section-divider" />
- 
+
+          {/* 2. Cámara y lente */}
           <div className="form-section">
             <h3 className="subsection-title">2. Cámara y lente</h3>
- 
+
             <div className="grid-inputs">
               <div className="form-group">
                 <label htmlFor={idDe('camara')}>{t.tipoCamara || 'Tipo de cámara'}</label>
@@ -654,9 +723,9 @@ export default function Ajustes(props) {
                   ))}
                 </select>
               </div>
- 
+
               <div className="form-group">
-                <label htmlFor={idDe('lente')}>{t.lente || 'Lente / Óptica'}</label>
+                <label htmlFor={idDe('lente')}>{t.lente || 'Lente'}</label>
                 <select
                   id={idDe('lente')}
                   value={ctx.lente}
@@ -665,50 +734,81 @@ export default function Ajustes(props) {
                 >
                   {lentesDisponibles.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.nombre}{recomendado(item) ? ' ★' : ''}
+                      {item.nombre}
+                      {recomendado(item) ? ' ★' : ''}
+                    </option>
+                  ))}
+                </select>
+                {equivalencia && <small className="hint">{equivalencia}</small>}
+              </div>
+            </div>
+
+            {esSmartphone && (
+              <details className="aj-details" open={bloqueActivo === 'sin_lente'}>
+                <summary>
+                  Guía rápida para smartphone ({FORMAS_SMARTPHONE.find((f) => f.id === bloqueActivo)?.titulo})
+                </summary>
+                {FORMAS_SMARTPHONE.map((forma) => (
+                  <div key={forma.id} className="aj-nota">
+                    <strong>{forma.titulo}</strong>
+                    <ul className="aj-lista">
+                      {forma.formasSacar.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </details>
+            )}
+          </div>
+
+          <hr className="section-divider" />
+
+          {/* 3. Luz y flash */}
+          <div className="form-section">
+            <h3 className="subsection-title">3. Luz y flash</h3>
+            <div className="grid-inputs">
+              <div className="form-group">
+                <label htmlFor={idDe('luz')}>{t.tipoLuz || 'Tipo de luz'}</label>
+                <select
+                  id={idDe('luz')}
+                  value={ctx.tipoLuz}
+                  disabled={esLuna}
+                  onChange={(e) => aplicarCambios({ tipoLuz: e.target.value })}
+                  className="modern-select"
+                >
+                  {luces.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nombre} ({item.wbRef})
                     </option>
                   ))}
                 </select>
               </div>
+
+              <div className="form-group">
+                <label>{t.flash || 'Flash'}</label>
+                <button
+                  type="button"
+                  className={`btn-toggle ${ctx.usaFlash ? 'active' : ''}`}
+                  aria-pressed={ctx.usaFlash}
+                  disabled={esLuna}
+                  onClick={() => aplicarCambios({ usaFlash: !ctx.usaFlash })}
+                >
+                  {esLuna ? '🚫 No aplica en luna' : ctx.usaFlash ? '⚡ Flash activado' : '☀️ Sin flash'}
+                </button>
+              </div>
             </div>
- 
-            {equivalencia && <small className="hint">{equivalencia}</small>}
-          </div>
-        </div>
-      </div>
- 
-      {/* 3. Tipo de toma y valores */}
-      <div className="glass-card">
-        <h2 className="section-title">🎯 {t.configsPorTipoFoto || 'Tipo de toma y parámetros'}</h2>
- 
-        <div className="biz-form">
-          <div className="form-section">
-            <h3 className="subsection-title">3. Tipo de fotografía</h3>
- 
-            <div className="btn-toggle-group" role="group" aria-label="Tipo de foto">
-              {presetsDisponibles.map((item) => {
-                const activo = item.id === ctx.tipoFoto;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`btn-toggle ${activo ? 'active' : ''}`}
-                    aria-pressed={activo}
-                    onClick={() => aplicarCambios({ tipoFoto: item.id })}
-                  >
-                    {item.icono} {item.nombre}
-                  </button>
-                );
-              })}
+
+            <div className="aj-nota">
+              <strong>Flash:</strong> {flashATexto(sugerencia.flash)}
             </div>
-            <small className="hint">{presetVista.tip}</small>
           </div>
- 
+
           <hr className="section-divider" />
- 
+
+          {/* 4. Parámetros de la toma */}
           <div className="form-section">
-            <h3 className="subsection-title">4. Valores de exposición y enfoque</h3>
- 
+            <h3 className="subsection-title">4. Parámetros de la toma</h3>
             <div className="grid-inputs">
               <Campo
                 id={idDe('apertura')}
@@ -719,14 +819,11 @@ export default function Ajustes(props) {
               />
               <Campo
                 id={idDe('obturacion')}
-                label="Velocidad de obturación"
+                label="Obturación"
                 valor={valores.obturacion}
                 sugerido={sugerencia.valores.obturacion}
                 onChange={(v) => cambiarCampo('obturacion', v)}
               />
-            </div>
- 
-            <div className="grid-inputs">
               <Campo
                 id={idDe('iso')}
                 label="ISO"
@@ -741,182 +838,101 @@ export default function Ajustes(props) {
                 sugerido={sugerencia.valores.wb}
                 onChange={(v) => cambiarCampo('wb', v)}
               />
-            </div>
- 
-            <div className="grid-inputs">
               <Campo
                 id={idDe('enfoque')}
-                label="Modo de enfoque"
+                label="Enfoque"
                 valor={valores.enfoque}
                 sugerido={sugerencia.valores.enfoque}
                 onChange={(v) => cambiarCampo('enfoque', v)}
               />
               <Campo
                 id={idDe('medicion')}
-                label="Medición de luz"
+                label="Medición"
                 valor={valores.medicion}
                 sugerido={sugerencia.valores.medicion}
                 onChange={(v) => cambiarCampo('medicion', v)}
               />
             </div>
           </div>
-        </div>
-      </div>
- 
-      {/* 5. Luz, flash y guías */}
-      <div className="glass-card">
-        <h2 className="section-title">
-          💡 {t.iluminacionYFlash || `Luz y flash en ${lugarInfo.nombre.toLowerCase()}`}
-        </h2>
- 
-        <div className="biz-form">
-          <div className="form-section">
-            <h3 className="subsection-title">5. Fuente de luz y flash</h3>
- 
-            <div className="form-group">
-              <label htmlFor={idDe('tipoLuz')}>{t.tipoLuz || 'Tipo de luz'}</label>
-              <select
-                id={idDe('tipoLuz')}
-                value={ctx.tipoLuz}
-                onChange={(e) => aplicarCambios({ tipoLuz: e.target.value })}
-                className="modern-select"
-              >
-                {luces.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.nombre} ({item.wbRef})
-                  </option>
-                ))}
-              </select>
-            </div>
- 
-            <div className="btn-toggle-group" role="group" aria-label="Uso de flash">
-              <button
-                type="button"
-                className={`btn-toggle ${!ctx.usaFlash ? 'active' : ''}`}
-                aria-pressed={!ctx.usaFlash}
-                onClick={() => aplicarCambios({ usaFlash: false })}
-              >
-                🚫 Sin flash
-              </button>
-              <button
-                type="button"
-                className={`btn-toggle ${ctx.usaFlash ? 'active' : ''}`}
-                aria-pressed={ctx.usaFlash}
-                disabled={esLuna}
-                onClick={() => aplicarCambios({ usaFlash: true })}
-              >
-                ⚡ {ctx.lugar === 'exterior' ? 'Flash de relleno' : 'Con flash'}
-              </button>
-            </div>
-            {esLuna && <small className="hint">El flash no alcanza a la luna, por eso queda desactivado.</small>}
- 
-            <div className="param-item">
-              <span className="param-label">Estado</span>
-              <span className="param-value">{sugerencia.flash.estado}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Modo</span>
-              <span className="param-value">{sugerencia.flash.modo}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Potencia</span>
-              <span className="param-value">{sugerencia.flash.potencia}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Modificador</span>
-              <span className="param-value">{sugerencia.flash.modificador}</span>
-            </div>
-          </div>
- 
-          {esSmartphone && ctx.lugar === 'estudio' && (
-            <>
-              <hr className="section-divider" />
-              <div className="form-section">
-                <h3 className="subsection-title">6. Smartphone RAW en estudio</h3>
-                {FORMAS_SMARTPHONE.map((bloque) => (
-                  <details
-                    key={bloque.id}
-                    className="aj-details"
-                    open={bloque.id === bloqueActivo}
-                  >
-                    <summary>{bloque.titulo}</summary>
-                    <ul className="aj-lista">
-                      {bloque.formasSacar.map((item, i) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                    </ul>
-                    <div className="param-item">
-                      <span className="param-label">Apertura / Obturación</span>
-                      <span className="param-value">
-                        {bloque.config.apertura} · {bloque.config.obturacion}
-                      </span>
-                    </div>
-                    <div className="param-item">
-                      <span className="param-label">ISO / WB</span>
-                      <span className="param-value">
-                        {bloque.config.iso} · {bloque.config.wb}
-                      </span>
-                    </div>
-                    <div className="param-item">
-                      <span className="param-label">Enfoque / Medición</span>
-                      <span className="param-value">
-                        {bloque.config.enfoque} · {bloque.config.medicion}
-                      </span>
-                    </div>
-                    <div className="param-item">
-                      <span className="param-label">Flash / Luz</span>
-                      <span className="param-value">{bloque.config.flash}</span>
-                    </div>
-                  </details>
-                ))}
-              </div>
-            </>
-          )}
- 
+
           <hr className="section-divider" />
- 
+
+          {/* 5. Consejos clave */}
           <div className="form-section">
-            <h3 className="subsection-title">Recomendaciones rápidas</h3>
+            <h3 className="subsection-title">5. Consejos y tomas sugeridas</h3>
             <ul className="aj-lista">
               {sugerencia.consejos.map((c, idx) => (
-                <li key={idx}>{c}</li>
+                <li key={`${idx}-${c.slice(0, 20)}`}>{c}</li>
               ))}
             </ul>
           </div>
- 
-          {typeof onGuardar === 'function' && (
-            <div className="form-group aj-nota">
-              <label htmlFor={idDe('nota')}>Nota para la bitácora (opcional)</label>
-              <input
-                id={idDe('nota')}
-                type="text"
-                className="modern-input"
-                value={nota}
-                placeholder="Ej: luna llena, viento fuerte, sesión de prueba"
-                onChange={(e) => setNota(e.target.value)}
-              />
+
+          <hr className="section-divider" />
+
+          {/* 6. Registro de la toma hacia Bitácora */}
+          <div className="form-section">
+            <h3 className="subsection-title">6. Registrar toma en la bitácora</h3>
+            <div className="grid-inputs">
+              <div className="form-group">
+                <label htmlFor={idDe('etiqueta')}>{t.etiquetaToma || 'Variante / toma (opcional)'}</label>
+                <input
+                  id={idDe('etiqueta')}
+                  type="text"
+                  className="modern-input"
+                  value={etiquetaToma}
+                  placeholder="Ej: Toma 1 · Contraluz, Primer plano..."
+                  onChange={(e) => setEtiquetaToma(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor={idDe('nota')}>{t.nota || 'Nota de la toma'}</label>
+                <input
+                  id={idDe('nota')}
+                  type="text"
+                  className="modern-input"
+                  value={nota}
+                  placeholder="Ej: sombra abierta a las 17 h, rebote blanco a la izquierda..."
+                  onChange={(e) => setNota(e.target.value)}
+                />
+              </div>
             </div>
-          )}
- 
-          <div className="aj-acciones">
-            {hayEditados && (
-              <button type="button" className="aj-btn-sec" onClick={restablecer}>
-                ↺ Restablecer sugeridos
+
+            <div className="aj-acciones">
+              <button
+                type="button"
+                className="btn-save"
+                onClick={() => guardarToma({ irABitacora: false })}
+              >
+                💾 {t.guardar || 'Guardar toma en bitácora'}
               </button>
-            )}
-            <button type="button" className="aj-btn-sec" onClick={copiar}>
-              📋 Copiar resumen
-            </button>
-            {typeof onGuardar === 'function' && (
-              <button type="button" className="btn-save" onClick={guardar}>
-                💾 {t.guardar || 'Guardar en bitácora'}
+
+              {typeof onIrBitacora === 'function' && (
+                <button
+                  type="button"
+                  className="aj-btn-sec"
+                  onClick={() => guardarToma({ irABitacora: true })}
+                >
+                  📝 {t.guardarYVerBitacora || 'Guardar y ver bitácora'}
+                </button>
+              )}
+
+              <button type="button" className="aj-btn-sec" onClick={copiar}>
+                📋 {t.copiar || 'Copiar resumen'}
               </button>
-            )}
-            {aviso && (
-              <span className="aj-aviso" role="status" aria-live="polite">
-                {aviso}
-              </span>
-            )}
+
+              {hayEditados && (
+                <button type="button" className="aj-btn-sec" onClick={restablecer}>
+                  ↺ {t.restablecer || 'Restablecer sugeridos'}
+                </button>
+              )}
+
+              {aviso && (
+                <span className="aj-aviso" role="status" aria-live="polite">
+                  {aviso}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
