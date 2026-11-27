@@ -1,29 +1,56 @@
-import React, { useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 
-export const TIPOS_CAMARA = [
-  { id: 'smartphone_raw', nombre: 'Smartphone RAW' },
-  { id: 'dslr_aps_c', nombre: 'DSLR / Mirrorless APS-C' },
-  { id: 'full_frame', nombre: 'Full Frame' },
-  { id: 'micro_4_3', nombre: 'Micro Cuatro Tercios' },
-  { id: 'formato_medio', nombre: 'Formato Medio' },
-  { id: 'compacta_bridge', nombre: 'Compacta / Bridge' },
-  { id: 'analogica_film', nombre: 'Analógica / Film' },
+/* ============================================================
+   DATOS (ESTUDIO)
+   ============================================================ */
+
+export const LUGARES = [
+  { id: 'estudio', nombre: 'Estudio', icono: '🏢', ayuda: 'Luz controlada en estudio: flash o luces continuas.' },
 ];
+
+// crop = factor de recorte respecto de full frame (null = no aplica)
+export const TIPOS_CAMARA = [
+  { id: 'smartphone_raw', nombre: 'Smartphone RAW', crop: 1, nota: 'Disparar en RAW/DNG y bloquear exposición y foco (toque largo) evita sorpresas entre fotos.' },
+  { id: 'dslr_aps_c', nombre: 'DSLR / Mirrorless APS-C', crop: 1.5, nota: 'Sensor APS-C: más profundidad de campo que full frame con el mismo encuadre.' },
+  { id: 'full_frame', nombre: 'Full Frame', crop: 1, nota: 'Full frame: mejor rendimiento en ISO alto y más desenfoque de fondo.' },
+  { id: 'micro_4_3', nombre: 'Micro Cuatro Tercios', crop: 2, nota: 'Sensor 4/3: mucha profundidad de campo; cuidá el ISO alto.' },
+  { id: 'formato_medio', nombre: 'Formato Medio', crop: 0.79, nota: 'Formato medio: profundidad de campo muy corta; cerrá un paso más para tener nitidez en todo el sujeto.' },
+  { id: 'compacta_bridge', nombre: 'Compacta / Bridge', crop: null, nota: 'Sensor chico: gran profundidad de campo. Para desenfocar, alejá el fondo y usá el zoom.' },
+  { id: 'analogica_film', nombre: 'Analógica / Film', crop: 1, nota: 'Película: no hay revisión inmediata. En negativo color conviene sobreexponer ~1 paso.' },
+];
+
+const L = (id, nombre, focal, focalMax, cats) => ({ id, nombre, focal, focalMax, cats });
 
 export const LENTES_COMUNES = [
-  { id: '35mm_fijo', nombre: '35mm fijo' },
-  { id: '55mm_fijo', nombre: '55mm fijo' },
-  { id: 'lente_kit', nombre: 'Lente del kit (18-55mm)' },
-  { id: 'tele_70_300', nombre: '70-300mm (Tele)' },
+  L('14_24', 'Gran angular 14-24mm', 14, 24, ['ancho']),
+  L('24mm_fijo', '24mm fijo', 24, 24, ['ancho']),
+  L('35mm_fijo', '35mm fijo', 35, 35, ['normal']),
+  L('50mm_fijo', '50mm fijo', 50, 50, ['normal', 'retrato']),
+  L('55mm_fijo', '55mm fijo', 55, 55, ['normal', 'retrato']),
+  L('85mm_fijo', '85mm fijo (retrato)', 85, 85, ['retrato']),
+  L('macro_100', 'Macro 90-105mm', 100, 100, ['macro', 'retrato']),
+  L('lente_kit', 'Lente del kit (18-55mm)', 18, 55, ['ancho', 'normal']),
+  L('zoom_24_70', 'Zoom 24-70mm', 24, 70, ['ancho', 'normal', 'retrato']),
+  L('tele_70_200', 'Tele 70-200mm', 70, 200, ['retrato', 'tele']),
+  L('tele_70_300', '70-300mm (Tele)', 70, 300, ['tele']),
+  L('super_tele', 'Super tele 150-600mm', 150, 600, ['tele']),
 ];
 
+// En smartphone las focales son equivalentes a full frame
 export const LENTES_SMARTPHONE = [
-  { id: 'sin_lente_agregado', nombre: 'Sin lente agregado (cámara nativa del celular)' },
-  { id: 'con_lente_agregado', nombre: 'Con lente agregado (gran angular / macro / tele)' },
-  { id: '35mm_fijo', nombre: '35mm fijo (equivalente)' },
-  { id: '55mm_fijo', nombre: '55mm fijo (equivalente)' },
-  { id: 'lente_kit', nombre: 'Lente del kit / modo zoom estándar' },
-  { id: 'tele_70_300', nombre: '70-300mm (equivalente / tele acoplado)' },
+  { id: 'sin_lente_agregado', nombre: 'Sin lente agregado (cámara nativa del celular)', focal: 24, focalMax: 24, cats: ['normal', 'ancho'], aperturaFija: 'Nativa del celular (f/1.7 - f/2.2)' },
+  { id: 'ultra_angular_0_5x', nombre: 'Ultra gran angular nativo (0.5x)', focal: 13, focalMax: 13, cats: ['ancho'], aperturaFija: 'Nativa del celular (f/1.8 - f/2.4)' },
+  { id: 'tele_3x', nombre: 'Teleobjetivo nativo (3x)', focal: 77, focalMax: 77, cats: ['retrato'], aperturaFija: 'Nativa del celular (f/2.4 - f/3.4)' },
+  { id: 'tele_5x', nombre: 'Teleobjetivo nativo (5x)', focal: 120, focalMax: 120, cats: ['tele', 'retrato'], aperturaFija: 'Nativa del celular (f/2.8 - f/3.4)' },
+  { id: 'con_lente_agregado', nombre: 'Con lente agregado (gran angular / macro / tele)', focal: null, focalMax: null, cats: ['ancho', 'macro', 'tele'] },
+  { id: '35mm_fijo', nombre: '35mm fijo (equivalente)', focal: 35, focalMax: 35, cats: ['normal'] },
+  { id: '55mm_fijo', nombre: '55mm fijo (equivalente)', focal: 55, focalMax: 55, cats: ['normal', 'retrato'] },
+  { id: 'lente_kit', nombre: 'Lente del kit / modo zoom estándar', focal: 24, focalMax: 70, cats: ['ancho', 'normal', 'retrato'] },
+  { id: 'tele_70_300', nombre: '70-300mm (equivalente / tele acoplado)', focal: 70, focalMax: 300, cats: ['tele'] },
+];
+
+const LENTES_COMPACTA = [
+  { id: 'zoom_integrado', nombre: 'Zoom integrado de la cámara', focal: null, focalMax: null, cats: ['ancho', 'normal', 'retrato', 'tele', 'macro'] },
 ];
 
 export const LENTES_POR_CAMARA = {
@@ -32,7 +59,7 @@ export const LENTES_POR_CAMARA = {
   full_frame: LENTES_COMUNES,
   micro_4_3: LENTES_COMUNES,
   formato_medio: LENTES_COMUNES,
-  compacta_bridge: LENTES_COMUNES,
+  compacta_bridge: LENTES_COMPACTA,
   analogica_film: LENTES_COMUNES,
 };
 
@@ -43,7 +70,7 @@ export const FORMAS_SMARTPHONE = [
     formasSacar: [
       'Cámara principal 1x en RAW/DNG: encuadre natural, mayor rango dinámico y mejor detalle en luz media/baja.',
       'Modo retrato / 2x con distancia media: separá el sujeto del fondo alejándote un poco y evitando pegar la cara a la lente.',
-      'Trípode + temporizador o disparador: clave en tomas nocturnas, arquitectura o detalle sin trepidación.',
+      'Trípode + temporizador o disparador: clave en tomas de detalle sin trepidación.',
     ],
     config: {
       apertura: 'f/1.7 - f/2.2 (fija del sensor nativo)',
@@ -76,321 +103,399 @@ export const FORMAS_SMARTPHONE = [
 ];
 
 export const TIPOS_LUZ = [
-  { id: 'flash_estudio', nombre: 'Flash de estudio (Strobe)', wbRef: '5500K' },
-  { id: 'luz_continua_estudio', nombre: 'Luz continua de estudio (LED)', wbRef: '5200K - 5600K' },
-  { id: 'flash_camara', nombre: 'Flash en cámara / Speedlight', wbRef: '5500K' },
-  { id: 'luz_mixta_estudio', nombre: 'Luz mixta en estudio', wbRef: '4500K - 5500K' },
+  { id: 'flash_estudio', nombre: 'Flash de estudio (Strobe)', wbRef: '5500K', nota: 'La potencia del flash controla la exposición; la apertura controla la profundidad de campo.' },
+  { id: 'luz_continua_estudio', nombre: 'Luz continua de estudio (LED)', wbRef: '5200K - 5600K', nota: 'Lo que ves es lo que sacás: compensá con ISO y velocidad de obturación.' },
+  { id: 'flash_camara', nombre: 'Flash en cámara / Speedlight', wbRef: '5500K', nota: 'Rebotá el flash en techo o pared, o usá difusor, para evitar sombras duras.' },
+  { id: 'luz_mixta_estudio', nombre: 'Luz mixta en estudio', wbRef: '4500K - 5500K', nota: 'Mezclar fuentes de distinta temperatura da tonos raros: igualalas o corregí con geles CTO/CTB.' },
+  { id: 'luz_ventana', nombre: 'Luz de ventana (natural en interior)', wbRef: '5500K - 6500K', nota: 'Ubicá al sujeto a 1-2 m de la ventana y un reflector del lado opuesto.' },
 ];
+
+const LUCES_POR_LUGAR = { estudio: TIPOS_LUZ };
 
 export const CONFIGS_TIPO_FOTO = [
   {
-    id: 'barrido',
-    nombre: 'Barrido (Panning)',
-    icono: '🏎️',
-    apertura: 'f/8 - f/16',
-    obturacion: '1/15s - 1/60s',
-    iso: '64 - 200',
-    enfoque: 'AF-C / Seguimiento continuo',
-    medicion: 'Matricial / Evaluativa',
-    wb: '5200K - 5500K',
-    tip: 'Seguí el movimiento parejo del sujeto y usá 2ª cortina si sumás flash.',
-  },
-  {
-    id: 'luna',
-    nombre: 'Luna',
-    icono: '🌕',
-    apertura: 'f/8 - f/11',
-    obturacion: '1/125s - 1/250s',
-    iso: '100 - 200',
-    enfoque: 'MF con Live View / AF-S puntual',
-    medicion: 'Puntual sobre la Luna',
-    wb: '5200K - 5600K',
-    tip: 'Exponé para la Luna y usá trípode + disparador/temporizador.',
-  },
-  {
-    id: 'retrato',
-    nombre: 'Retrato',
-    icono: '👤',
-    apertura: 'f/2.8 - f/5.6',
-    obturacion: '1/125s - 1/200s',
-    iso: '100 - 400',
-    enfoque: 'AF-C al ojo / AF-S puntual',
-    medicion: 'Matricial / Puntual',
-    wb: '5500K (Flash) / 5200K - 5600K',
+    id: 'retrato', nombre: 'Retrato', icono: '👤', lugares: ['estudio'], rec: ['retrato'],
+    apertura: 'f/2.8 - f/5.6', obturacion: '1/125s - 1/200s', iso: '100 - 400',
+    enfoque: 'AF-C al ojo / AF-S puntual', medicion: 'Matricial / Puntual',
     tip: 'Foco en el ojo más cercano y modificador suave para piel.',
   },
   {
-    id: 'paisaje',
-    nombre: 'Paisaje / Escenografía',
-    icono: '🏔️',
-    apertura: 'f/8 - f/11',
-    obturacion: '1/60s - 1/125s (o trípode)',
-    iso: '64 - 200',
-    enfoque: 'Hiperfocal / AF-S',
-    medicion: 'Matricial / Evaluativa',
-    wb: '5200K - 5500K',
-    tip: 'Buscá profundidad de campo pareja de adelante hacia atrás.',
+    id: 'moda', nombre: 'Moda / Editorial', icono: '👗', lugares: ['estudio'], rec: ['retrato'],
+    apertura: 'f/5.6 - f/8', obturacion: '1/125s - 1/200s', iso: '100 - 200',
+    enfoque: 'AF-C al ojo', medicion: 'Matricial / Puntual',
+    tip: 'Luz principal a 45° con relleno suave; disparo en ráfaga para captar micro-movimientos.',
   },
   {
-    id: 'producto',
-    nombre: 'Producto',
-    icono: '📦',
-    apertura: 'f/8 - f/16',
-    obturacion: '1/125s - 1/200s',
-    iso: '64 - 100',
-    enfoque: 'MF / AF-S puntual',
-    medicion: 'Puntual / Matricial',
-    wb: '5500K',
+    id: 'producto', nombre: 'Producto', icono: '📦', lugares: ['estudio'], rec: ['macro', 'retrato'],
+    apertura: 'f/8 - f/16', obturacion: '1/125s - 1/200s', iso: '64 - 100',
+    enfoque: 'MF / AF-S puntual', medicion: 'Puntual / Matricial',
     tip: 'Controlá reflejos y brillos con difusores o banderas.',
   },
   {
-    id: 'deporte',
-    nombre: 'Acción / Movimiento',
-    icono: '⚡',
-    apertura: 'f/4 - f/8',
-    obturacion: '1/200s (sync) o 1/1000s+',
-    iso: '200 - 1600',
-    enfoque: 'AF-C seguimiento continuo',
-    medicion: 'Matricial',
-    wb: '5500K',
-    tip: 'Con flash en estudio respetá la velocidad máxima de sincronización.',
+    id: 'comida', nombre: 'Comida', icono: '🍽️', lugares: ['estudio'], rec: ['macro', 'normal'],
+    apertura: 'f/4 - f/8', obturacion: '1/125s - 1/200s', iso: '100 - 200',
+    enfoque: 'AF-S puntual / MF', medicion: 'Matricial',
+    tip: 'Luz lateral o contraluz suave con reflector; probá encuadre cenital o a 45°.',
   },
   {
-    id: 'macro',
-    nombre: 'Macro / Detalle',
-    icono: '🔍',
-    apertura: 'f/8 - f/16',
-    obturacion: '1/125s - 1/200s',
-    iso: '100 - 400',
-    enfoque: 'MF / AF puntual',
-    medicion: 'Puntual',
-    wb: '5500K',
+    id: 'macro', nombre: 'Macro / Detalle', icono: '🔍', lugares: ['estudio'], rec: ['macro'],
+    apertura: 'f/8 - f/16', obturacion: '1/125s - 1/200s', iso: '100 - 400',
+    enfoque: 'MF / AF puntual', medicion: 'Puntual',
     tip: 'Cerrá diafragma para ganar zona nítida en detalles chicos.',
+  },
+  {
+    id: 'deporte', nombre: 'Acción / Movimiento', icono: '⚡', lugares: ['estudio'], rec: ['tele'], sinMinima: true,
+    apertura: 'f/4 - f/8', obturacion: '1/1000s o más', obturacionFlash: '1/200s (sincronización)', iso: '200 - 1600',
+    enfoque: 'AF-C seguimiento continuo', medicion: 'Matricial',
+    tip: 'Con flash en estudio respetá la velocidad máxima de sincronización: el flash es el que congela el movimiento.',
+  },
+  {
+    id: 'barrido', nombre: 'Barrido (Panning)', icono: '🏎️', lugares: ['estudio'], rec: ['normal', 'tele'], sinMinima: true,
+    apertura: 'f/8 - f/16', obturacion: '1/15s - 1/60s', iso: '64 - 200',
+    enfoque: 'AF-C / Seguimiento continuo', medicion: 'Matricial / Evaluativa',
+    tip: 'Seguí el movimiento parejo del sujeto y usá 2ª cortina si sumás flash.',
   },
 ];
 
-const getNombreCamara = (id) =>
-  TIPOS_CAMARA.find((c) => c.id === id)?.nombre || id || '—';
-
-const getNombreLente = (camaraId, lenteId) => {
-  const lista = LENTES_POR_CAMARA[camaraId] || LENTES_COMUNES;
-  return lista.find((l) => l.id === lenteId)?.nombre || lenteId || '—';
+const APERTURA_RETRATO_POR_LENTE = {
+  '85mm_fijo': 'f/2 - f/4',
+  '55mm_fijo': 'f/2.8 - f/4',
+  '50mm_fijo': 'f/2.8 - f/4',
+  '35mm_fijo': 'f/2.8 - f/5.6',
+  lente_kit: 'f/4 - f/5.6',
+  zoom_24_70: 'f/2.8 - f/5.6',
+  tele_70_200: 'f/2.8 - f/5.6',
+  tele_70_300: 'f/4 - f/5.6',
+  macro_100: 'f/4 - f/8',
 };
 
-const getNombreLuz = (luzId) =>
-  TIPOS_LUZ.find((item) => item.id === luzId)?.nombre || luzId || '—';
+const MODIFICADOR_ESTUDIO = {
+  retrato: 'Octabox / beauty dish',
+  moda: 'Octabox / beauty dish',
+  producto: 'Softbox + difusores y banderas',
+  comida: 'Softbox lateral + reflector',
+  macro: 'Softbox chico o flash anular',
+  deporte: 'Octabox / reflector estándar',
+  barrido: 'Softbox / reflector estándar',
+};
 
-function getConfigCombinada({ camara, lente, tipoFoto, tipoLuz, usaFlash }) {
-  const esSmartphone = camara === 'smartphone_raw';
-  const esTele = lente === 'tele_70_300';
-  const esFijo55 = lente === '55mm_fijo';
-  const esFijo35 = lente === '35mm_fijo';
-  const esKit = lente === 'lente_kit';
+const CAMPOS_TOMA = ['apertura', 'obturacion', 'iso', 'wb', 'enfoque', 'medicion'];
 
-  let aperturaSugerida =
-    tipoFoto === 'retrato'
-      ? esFijo55
-        ? 'f/2.8 - f/4'
-        : esFijo35
-        ? 'f/2.8 - f/5.6'
-        : esKit
-        ? 'f/4 - f/5.6'
-        : 'f/4 - f/5.6'
-      : tipoFoto === 'barrido' || tipoFoto === 'luna' || tipoFoto === 'paisaje' || tipoFoto === 'producto' || tipoFoto === 'macro'
-      ? 'f/8 - f/11'
-      : 'f/4 - f/8';
+/* ============================================================
+   HELPERS
+   ============================================================ */
 
-  if (esSmartphone) {
-    aperturaSugerida =
-      lente === 'sin_lente_agregado'
-        ? 'Nativa del celular (f/1.7 - f/2.2)'
-        : 'Óptica acoplada (f/2 - f/5.6)';
-  }
+const presetsDeLugar = (lugar) => CONFIGS_TIPO_FOTO.filter((p) => p.lugares.includes(lugar));
+const presetEnLugar = (preset, lugar) => ({ ...preset, ...(preset[lugar] || {}) });
+const getCamara = (id) => TIPOS_CAMARA.find((c) => c.id === id) || TIPOS_CAMARA[1];
+const getLente = (camaraId, lenteId) => {
+  const lista = LENTES_POR_CAMARA[camaraId] || LENTES_COMUNES;
+  return lista.find((l) => l.id === lenteId) || lista[0];
+};
+const familiaCamara = (id) => (id === 'smartphone_raw' ? 'phone' : id === 'compacta_bridge' ? 'compacta' : 'ilc');
+const lentePorDefecto = (camaraId) =>
+  camaraId === 'smartphone_raw' ? 'sin_lente_agregado' : camaraId === 'compacta_bridge' ? 'zoom_integrado' : '35mm_fijo';
 
-  let obturacionSugerida =
-    tipoFoto === 'barrido'
-      ? '1/15s - 1/60s'
-      : tipoFoto === 'luna'
-      ? '1/125s - 1/250s'
-      : esTele
-      ? '1/200s - 1/320s (cuidado con trepidación)'
-      : '1/125s - 1/200s (sync estudio)';
+function normalizarContexto(ctx) {
+  const lugar = 'estudio';
+  const camara = TIPOS_CAMARA.some((c) => c.id === ctx.camara) ? ctx.camara : 'dslr_aps_c';
+  const lentes = LENTES_POR_CAMARA[camara];
+  const lente = lentes.some((l) => l.id === ctx.lente) ? ctx.lente : lentePorDefecto(camara);
+  const luces = LUCES_POR_LUGAR[lugar];
+  const tipoLuz = luces.some((l) => l.id === ctx.tipoLuz) ? ctx.tipoLuz : luces[0].id;
+  const presets = presetsDeLugar(lugar);
+  const tipoFoto = presets.some((p) => p.id === ctx.tipoFoto) ? ctx.tipoFoto : presets[0].id;
+  return { lugar, camara, lente, tipoLuz, tipoFoto, usaFlash: Boolean(ctx.usaFlash) };
+}
 
-  if (esSmartphone && lente === 'sin_lente_agregado') {
-    obturacionSugerida = tipoFoto === 'barrido' ? '1/30s - 1/60s' : '1/125s - 1/500s';
-  }
-
-  const flashConfig = !usaFlash
-    ? {
-        estado: 'Sin flash (Estudio)',
-        modo: tipoLuz === 'luz_continua_estudio' ? 'Luz continua LED' : 'Luz disponible de estudio',
-        potencia: 'Ajustar intensidad de luz continua + ISO/velocidad',
-        modificador: esFijo35 || esKit ? 'Panel LED / softbox amplio' : 'Softbox / octabox dirigido',
-        nota: 'En estudio sin flash, controlá el movimiento cuidando la velocidad de obturación y usá trípode si bajás la velocidad.',
-      }
-    : esSmartphone
-    ? {
-        estado: 'Con flash / luz de apoyo (Smartphone RAW)',
-        modo: lente === 'sin_lente_agregado' ? 'Luz continua o flash externo difuso' : 'Flash externo / LED lateral (sin tapar lente)',
-        potencia: lente === 'sin_lente_agregado' ? 'Suave / baja (-1 a -1.5 EV)' : 'Baja a media (evitar sombras del clip)',
-        modificador: 'Difusor / softbox chico',
-        nota:
-          lente === 'sin_lente_agregado'
-            ? 'Sin lente agregado: evitá el flash directo duro del celular y priorizá luz continua o difusa.'
-            : 'Con lente agregado: verificá que el accesorio acoplado no genere sombra sobre el encuadre.',
-      }
-    : {
-        estado: `Con flash (${getNombreLuz(tipoLuz)})`,
-        modo: tipoFoto === 'barrido' ? 'Manual (M) + 2ª cortina' : 'Manual (M) o TTL de estudio',
-        potencia:
-          esTele
-            ? '1/4 - 1/1 (mayor distancia en 70-300mm)'
-            : esFijo55 || esFijo35
-            ? '1/8 - 1/2 según distancia y apertura'
-            : '1/8 - 1/4 (18-55mm kit en estudio)',
-        modificador:
-          esTele
-            ? 'Reflector / snoot / octabox concentrado'
-            : esFijo35 || esKit
-            ? 'Softbox / octabox mediano-grande'
-            : 'Octabox / softbox para retrato o producto',
-        nota: `Combinación activa en Estudio: ${getNombreCamara(camara)} + ${getNombreLente(camara, lente)} + ${tipoFoto}. Mantené la velocidad dentro de la sincronización del flash.`,
-      };
-
+function resolver(ctx) {
+  const luces = LUCES_POR_LUGAR[ctx.lugar] || TIPOS_LUZ;
   return {
-    aperturaSugerida,
-    obturacionSugerida,
-    flashConfig,
+    lugarInfo: LUGARES[0],
+    cam: getCamara(ctx.camara),
+    len: getLente(ctx.camara, ctx.lente),
+    preset: CONFIGS_TIPO_FOTO.find((p) => p.id === ctx.tipoFoto) || CONFIGS_TIPO_FOTO[0],
+    luz: luces.find((l) => l.id === ctx.tipoLuz) || luces[0],
   };
 }
 
-export default function Ajustes({
-  t = {},
-  camara = 'dslr_aps_c',
-  setCamara,
-  lente = '35mm_fijo',
-  setLente,
-  tipoFoto = 'retrato',
-  setTipoFoto,
-  tipoLuz = 'flash_estudio',
-  setTipoLuz,
-  usaFlash = true,
-  setUsaFlash,
-  configToma,
-  setConfigToma,
-  onAplicarPreset,
-  onGuardar,
-}) {
-  const lugarFijo = 'estudio';
+function velocidadMinima(focalEq) {
+  const pasos = [30, 60, 125, 250, 500, 1000, 2000, 4000];
+  return `1/${pasos.find((p) => p >= focalEq) ?? 4000}s`;
+}
 
-  const [presetSeleccionadoId, setPresetSeleccionadoId] = useState(
-    CONFIGS_TIPO_FOTO.find((item) => item.id === tipoFoto)?.id || 'retrato'
+function textoEquivalencia(cam, len) {
+  if (!len.focal || !cam.crop || cam.crop === 1) return '';
+  const a = Math.round(len.focal * cam.crop);
+  const b = Math.round(len.focalMax * cam.crop);
+  return a === b ? `≈ ${a}mm en full frame` : `≈ ${a}-${b}mm en full frame`;
+}
+
+function calcularFlash({ esSmartphone, len, preset, luz, usaFlash }) {
+  const cats = len.cats || [];
+  const esTele = cats.includes('tele');
+  const esAncho = cats.includes('ancho');
+  const nativo = Boolean(len.aperturaFija);
+
+  if (!usaFlash) {
+    return {
+      estado: 'Sin flash (Estudio)',
+      modo: luz.id === 'luz_continua_estudio' ? 'Luz continua LED' : 'Luz disponible de estudio',
+      potencia: 'Ajustar intensidad de la luz + ISO/velocidad',
+      modificador: esAncho ? 'Panel LED / softbox amplio' : 'Softbox / octabox dirigido',
+      nota: 'Sin flash en estudio, controlá el movimiento con la velocidad de obturación y usá trípode si la bajás.',
+    };
+  }
+
+  if (esSmartphone) {
+    return {
+      estado: 'Con flash / luz de apoyo (Smartphone RAW)',
+      modo: nativo ? 'Luz continua o flash externo difuso' : 'Flash externo / LED lateral (sin tapar lente)',
+      potencia: nativo ? 'Suave / baja (-1 a -1.5 EV)' : 'Baja a media (evitar sombras del clip)',
+      modificador: 'Difusor / softbox chico',
+      nota: nativo
+        ? 'Sin lente agregado: evitá el flash directo duro del celular y priorizá luz continua o difusa.'
+        : 'Con lente agregado: verificá que el accesorio acoplado no genere sombra sobre el encuadre.',
+    };
+  }
+
+  return {
+    estado: `Con flash (${luz.nombre})`,
+    modo: preset.id === 'barrido' ? 'Manual (M) + 2ª cortina' : 'Manual (M) o TTL de estudio',
+    potencia: esTele
+      ? '1/4 - 1/1 (mayor distancia con tele)'
+      : preset.id === 'macro'
+      ? '1/32 - 1/8 (distancia corta)'
+      : '1/8 - 1/2 según distancia y apertura',
+    modificador: esTele ? 'Reflector / snoot / octabox concentrado' : MODIFICADOR_ESTUDIO[preset.id] || 'Softbox / octabox',
+    nota: 'Mantené la velocidad dentro de la sincronización del flash (normalmente 1/160s - 1/250s).',
+  };
+}
+
+function calcularConfig(ctx) {
+  const { cam, len, preset, luz } = resolver(ctx);
+  const { lugar, usaFlash } = ctx;
+  const esSmartphone = ctx.camara === 'smartphone_raw';
+  const base = presetEnLugar(preset, lugar);
+
+  let apertura = base.apertura;
+  if (preset.id === 'retrato' && APERTURA_RETRATO_POR_LENTE[len.id]) {
+    apertura = APERTURA_RETRATO_POR_LENTE[len.id];
+  }
+  if (esSmartphone) apertura = len.aperturaFija || 'Óptica acoplada (f/2 - f/5.6)';
+
+  let obturacion = base.obturacion;
+  if (usaFlash && !esSmartphone && base.obturacionFlash) obturacion = base.obturacionFlash;
+
+  const iso = cam.id === 'analogica_film' ? 'Según el rollo (ISO 100 - 400)' : base.iso;
+  const wb = base.wbManda ? base.wb : luz.wbRef;
+
+  const flash = calcularFlash({ esSmartphone, len, preset, luz, usaFlash });
+
+  const consejos = [base.tip];
+  if (luz.nota && !base.wbManda) consejos.push(luz.nota);
+  if (cam.nota) consejos.push(cam.nota);
+
+  const focalEqMax = len.focalMax ? len.focalMax * (cam.crop ?? 1) : null;
+  const flashDomina = usaFlash;
+
+  if (!preset.sinMinima && focalEqMax && !flashDomina) {
+    consejos.push(`A mano alzada no bajes de ${velocidadMinima(focalEqMax)} con este lente, o activá la estabilización.`);
+  }
+  if (esSmartphone && usaFlash) {
+    consejos.push('Con flash de estudio, el celular puede mostrar bandas por el obturador electrónico: probá antes o preferí luz continua.');
+  }
+  consejos.push(flash.nota);
+
+  return { valores: { apertura, obturacion, iso, wb, enfoque: base.enfoque, medicion: base.medicion }, flash, consejos };
+}
+
+function useControlado(valor, setter, inicial) {
+  const [local, setLocal] = useState(valor ?? inicial);
+  const controlado = typeof setter === 'function';
+  const actual = controlado ? valor ?? inicial : local;
+  const cambiar = (nuevo) => {
+    setLocal(nuevo);
+    if (controlado) setter(nuevo);
+  };
+  return [actual, cambiar];
+}
+
+function Campo({ id, label, valor, sugerido, onChange }) {
+  const editado = valor !== sugerido;
+  return (
+    <div className="form-group">
+      <label htmlFor={id}>
+        {label}
+        {editado && <span className="aj-badge">editado</span>}
+      </label>
+      <input
+        id={id}
+        type="text"
+        className="modern-input"
+        value={valor}
+        placeholder={sugerido}
+        title={`Sugerido: ${sugerido}`}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
   );
-  const [luzLocal, setLuzLocal] = useState(tipoLuz);
-  const [flashLocal, setFlashLocal] = useState(Boolean(usaFlash));
+}
 
-  const luzActual = setTipoLuz ? tipoLuz : luzLocal;
-  const cambiarLuz = (nuevaLuz) => {
-    setLuzLocal(nuevaLuz);
-    setTipoLuz?.(nuevaLuz);
-    const infoLuz = TIPOS_LUZ.find((item) => item.id === nuevaLuz);
-    if (infoLuz && typeof setConfigToma === 'function') {
-      setConfigToma({
-        ...valoresActuales,
-        wb: infoLuz.wbRef,
-      });
-    }
-  };
+const ESTILOS = `
+.aj-badge{display:inline-block;margin-left:.5rem;padding:.05rem .5rem;border-radius:999px;font-size:.72rem;background:rgba(127,127,127,.22)}
+.aj-lista{margin:.6rem 0 0;padding-left:1.1rem;display:grid;gap:.4rem}
+.aj-acciones{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1rem}
+.aj-btn-sec{padding:.6rem 1rem;border-radius:10px;border:1px solid rgba(127,127,127,.45);background:transparent;color:inherit;cursor:pointer;font:inherit}
+.aj-btn-sec:hover{background:rgba(127,127,127,.14)}
+.aj-btn-sec:focus-visible,.btn-toggle:focus-visible,.btn-save:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.aj-aviso{font-size:.9rem}
+.aj-details{margin-top:.75rem;border:1px solid rgba(127,127,127,.3);border-radius:10px;padding:.5rem .9rem}
+.aj-details summary{cursor:pointer;font-weight:600;padding:.25rem 0}
+`;
 
-  const flashActual = setUsaFlash ? Boolean(usaFlash) : flashLocal;
-  const cambiarFlash = (estadoFlash) => {
-    setFlashLocal(estadoFlash);
-    setUsaFlash?.(estadoFlash);
-  };
+/* ============================================================
+   COMPONENTE
+   ============================================================ */
 
-  const lentesDisponibles = LENTES_POR_CAMARA[camara] || LENTES_COMUNES;
-  const presetActivo =
-    CONFIGS_TIPO_FOTO.find((item) => item.id === presetSeleccionadoId) || CONFIGS_TIPO_FOTO[0];
+export default function Ajustes(props) {
+  const { t = {}, onAplicarPreset, onGuardar } = props;
+  const uid = useId();
+  const idDe = (nombre) => `${uid}-${nombre}`;
 
-  const handleCamaraChange = (nuevaCamara) => {
-    setCamara?.(nuevaCamara);
-    const nuevosLentes = LENTES_POR_CAMARA[nuevaCamara] || LENTES_COMUNES;
-    if (nuevaCamara === 'smartphone_raw') {
-      setLente?.('sin_lente_agregado');
-    } else if (!nuevosLentes.some((item) => item.id === lente)) {
-      setLente?.('35mm_fijo');
-    }
-  };
+  const [lugar, setLugar] = useControlado(props.lugar, props.setLugar, 'estudio');
+  const [camara, setCamara] = useControlado(props.camara, props.setCamara, 'dslr_aps_c');
+  const [lente, setLente] = useControlado(props.lente, props.setLente, '35mm_fijo');
+  const [tipoFoto, setTipoFoto] = useControlado(props.tipoFoto, props.setTipoFoto, 'retrato');
+  const [tipoLuz, setTipoLuz] = useControlado(props.tipoLuz, props.setTipoLuz, 'flash_estudio');
+  const [usaFlashRaw, setUsaFlash] = useControlado(props.usaFlash, props.setUsaFlash, true);
+  const [overrides, setOverrides] = useControlado(props.configToma, props.setConfigToma, {});
 
-  const handleSeleccionarPreset = (preset) => {
-    setPresetSeleccionadoId(preset.id);
-    setTipoFoto?.(preset.id);
-    if (typeof setConfigToma === 'function') {
-      setConfigToma({
-        apertura: preset.apertura,
-        obturacion: preset.obturacion,
-        iso: preset.iso,
-        enfoque: preset.enfoque,
-        medicion: preset.medicion,
-        wb: preset.wb,
-      });
-    }
-    onAplicarPreset?.(preset);
-  };
+  const [aviso, setAviso] = useState('');
+  const timer = useRef(null);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
-  const valoresActuales = {
-    apertura: configToma?.apertura ?? presetActivo.apertura,
-    obturacion: configToma?.obturacion ?? presetActivo.obturacion,
-    iso: configToma?.iso ?? presetActivo.iso,
-    enfoque: configToma?.enfoque ?? presetActivo.enfoque,
-    medicion: configToma?.medicion ?? presetActivo.medicion,
-    wb: configToma?.wb ?? presetActivo.wb,
-  };
-
-  const handleCampoToma = (campo, valor) => {
-    if (typeof setConfigToma === 'function') {
-      setConfigToma({
-        ...valoresActuales,
-        [campo]: valor,
-      });
-    }
-  };
-
-  const combinada = getConfigCombinada({
-    camara,
-    lente,
-    tipoFoto: presetActivo.id,
-    tipoLuz: luzActual,
-    usaFlash: flashActual,
+  const ctx = normalizarContexto({ lugar, camara, lente, tipoFoto, tipoLuz, usaFlash: usaFlashRaw });
+  const { lugarInfo, cam, len, preset, luz } = resolver(ctx);
+  const presetVista = presetEnLugar(preset, ctx.lugar);
+  const sugerencia = calcularConfig(ctx);
+  const valores = {};
+  CAMPOS_TOMA.forEach((k) => {
+    valores[k] = overrides?.[k] ?? sugerencia.valores[k];
   });
+  const hayEditados = CAMPOS_TOMA.some((k) => valores[k] !== sugerencia.valores[k]);
+
+  const aplicarCambios = (cambios) => {
+    const extra = {};
+    if (cambios.camara && familiaCamara(cambios.camara) !== familiaCamara(ctx.camara)) {
+      extra.lente = lentePorDefecto(cambios.camara);
+    }
+    const nuevo = normalizarContexto({ ...ctx, ...extra, ...cambios });
+    setLugar('estudio');
+    setCamara(nuevo.camara);
+    setLente(nuevo.lente);
+    setTipoFoto(nuevo.tipoFoto);
+    setTipoLuz(nuevo.tipoLuz);
+    setUsaFlash(nuevo.usaFlash);
+    setOverrides(calcularConfig(nuevo).valores);
+    if (cambios.tipoFoto) {
+      onAplicarPreset?.(presetEnLugar(CONFIGS_TIPO_FOTO.find((p) => p.id === nuevo.tipoFoto), nuevo.lugar));
+    }
+  };
+
+  const cambiarCampo = (campo, valor) => setOverrides({ ...valores, [campo]: valor });
+  const restablecer = () => setOverrides({ ...sugerencia.valores });
+
+  const mostrarAviso = (texto) => {
+    setAviso(texto);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setAviso(''), 2500);
+  };
+
+  const recomendado = (item) => item.cats?.some((c) => preset.rec?.includes(c));
+  const equivalencia = textoEquivalencia(cam, len);
+  const presetsDisponibles = presetsDeLugar(ctx.lugar);
+  const lentesDisponibles = LENTES_POR_CAMARA[ctx.camara];
+  const luces = LUCES_POR_LUGAR[ctx.lugar] || TIPOS_LUZ;
+  const esSmartphone = ctx.camara === 'smartphone_raw';
+  const bloqueActivo = len.aperturaFija ? 'sin_lente' : 'con_lente';
+
+  const resumenTexto = [
+    `${lugarInfo.nombre} · ${cam.nombre} · ${len.nombre}`,
+    `Toma: ${preset.nombre}`,
+    `Luz: ${luz.nombre}${ctx.usaFlash ? ' + flash' : ''}`,
+    `Apertura: ${valores.apertura}`,
+    `Obturación: ${valores.obturacion}`,
+    `ISO: ${valores.iso}`,
+    `WB: ${valores.wb}`,
+    `Enfoque: ${valores.enfoque}`,
+    `Medición: ${valores.medicion}`,
+    `${sugerencia.flash.estado}: ${sugerencia.flash.modo} · ${sugerencia.flash.potencia} · ${sugerencia.flash.modificador}`,
+  ].join('\n');
+
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(resumenTexto);
+      mostrarAviso('Resumen copiado');
+    } catch {
+      mostrarAviso('No se pudo copiar');
+    }
+  };
+
+  const guardar = () => {
+    onGuardar?.({
+      lugar: ctx.lugar,
+      camara: ctx.camara,
+      lente: ctx.lente,
+      tipoFoto: ctx.tipoFoto,
+      tipoLuz: ctx.tipoLuz,
+      usaFlash: ctx.usaFlash,
+      config: valores,
+      flash: sugerencia.flash,
+    });
+    mostrarAviso('Ajustes guardados');
+  };
 
   return (
     <div className="tab-pane animate-fade-in">
-      {/* 1. Cámara y Lente (Estudio) */}
+      <style>{ESTILOS}</style>
+
+      {/* 1 y 2. Lugar (Estudio), cámara y lente */}
       <div className="glass-card">
-        <h2 className="section-title">⚙️ {t.ajustesTitulo || 'Ajustes de Estudio'}</h2>
+        <h2 className="section-title">⚙️ {t.ajustesTitulo || 'Ajustes de toma'}</h2>
 
         <div className="biz-form">
           <div className="form-section">
-            <h3 className="subsection-title">1. Lugar: Estudio · Cámara y lente</h3>
+            <h3 className="subsection-title">1. Lugar: Estudio</h3>
+
+            <div className="btn-toggle-group" role="group" aria-label="Lugar">
+              {LUGARES.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  className="btn-toggle active"
+                  aria-pressed={true}
+                  onClick={() => aplicarCambios({ lugar: 'estudio' })}
+                >
+                  {l.icono} {l.nombre}
+                </button>
+              ))}
+            </div>
+            <small className="hint">{lugarInfo.ayuda}</small>
+          </div>
+
+          <hr className="section-divider" />
+
+          <div className="form-section">
+            <h3 className="subsection-title">2. Cámara y lente</h3>
 
             <div className="grid-inputs">
               <div className="form-group">
-                <label>{t.locacion || 'Lugar'}</label>
+                <label htmlFor={idDe('camara')}>{t.tipoCamara || 'Tipo de cámara'}</label>
                 <select
-                  value={lugarFijo}
-                  disabled
-                  className="modern-select"
-                >
-                  <option value="estudio">{t.estudioPro || 'Estudio'}</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>{t.tipoCamara || 'Tipo de cámara'}</label>
-                <select
-                  value={camara}
-                  onChange={(e) => handleCamaraChange(e.target.value)}
+                  id={idDe('camara')}
+                  value={ctx.camara}
+                  onChange={(e) => aplicarCambios({ camara: e.target.value })}
                   className="modern-select"
                 >
                   {TIPOS_CAMARA.map((item) => (
@@ -400,284 +505,252 @@ export default function Ajustes({
                   ))}
                 </select>
               </div>
+
+              <div className="form-group">
+                <label htmlFor={idDe('lente')}>{t.lente || 'Lente / Óptica'}</label>
+                <select
+                  id={idDe('lente')}
+                  value={ctx.lente}
+                  onChange={(e) => aplicarCambios({ lente: e.target.value })}
+                  className="modern-select"
+                >
+                  {lentesDisponibles.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nombre}{recomendado(item) ? ' ★' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>{t.lente || 'Lente / Óptica'}</label>
-              <select
-                value={lente}
-                onChange={(e) => setLente?.(e.target.value)}
-                className="modern-select"
-              >
-                {lentesDisponibles.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="param-item">
-              <span className="param-label">Lugar</span>
-              <span className="param-value">Estudio</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Cámara</span>
-              <span className="param-value">{getNombreCamara(camara)}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Lente</span>
-              <span className="param-value">{getNombreLente(camara, lente)}</span>
-            </div>
+            {equivalencia && <small className="hint">{equivalencia}</small>}
           </div>
         </div>
       </div>
 
-      {/* 2. Configuración por tipo de toma + combinación con cámara, lente y flash */}
+      {/* 3. Tipo de toma y valores */}
       <div className="glass-card">
-        <h2 className="section-title">
-          🎯 {t.configsPorTipoFoto || 'Configuración por toma y equipo'}
-        </h2>
+        <h2 className="section-title">🎯 {t.configsPorTipoFoto || 'Tipo de toma y parámetros'}</h2>
 
         <div className="biz-form">
           <div className="form-section">
-            <h3 className="subsection-title">2. Elegí el tipo de toma</h3>
+            <h3 className="subsection-title">3. Tipo de fotografía</h3>
 
-            <div className="btn-toggle-group">
-              {CONFIGS_TIPO_FOTO.map((preset) => {
-                const activo = preset.id === presetActivo.id;
+            <div className="btn-toggle-group" role="group" aria-label="Tipo de foto">
+              {presetsDisponibles.map((item) => {
+                const activo = item.id === ctx.tipoFoto;
                 return (
                   <button
-                    key={preset.id}
+                    key={item.id}
                     type="button"
                     className={`btn-toggle ${activo ? 'active' : ''}`}
-                    onClick={() => handleSeleccionarPreset(preset)}
+                    aria-pressed={activo}
+                    onClick={() => aplicarCambios({ tipoFoto: item.id })}
                   >
-                    {preset.icono ? `${preset.icono} ` : ''}
-                    {preset.nombre}
+                    {item.icono} {item.nombre}
                   </button>
                 );
               })}
             </div>
-
-            <small className="hint">
-              <strong>Guía ({presetActivo.nombre}):</strong> {presetActivo.tip}
-            </small>
+            <small className="hint">{presetVista.tip}</small>
           </div>
 
           <hr className="section-divider" />
 
           <div className="form-section">
-            <h3 className="subsection-title">
-              3. Configuración para {presetActivo.nombre} con {getNombreCamara(camara)} y {getNombreLente(camara, lente)}
-            </h3>
-
-            <div className="param-item">
-              <span className="param-label">Apertura sugerida</span>
-              <span className="param-value">{combinada.aperturaSugerida}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Obturación sugerida</span>
-              <span className="param-value">{combinada.obturacionSugerida}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Flash / Luz</span>
-              <span className="param-value">{combinada.flashConfig.modo}</span>
-            </div>
-            <div className="param-item">
-              <span className="param-label">Potencia / Modificador</span>
-              <span className="param-value">
-                {combinada.flashConfig.potencia} · {combinada.flashConfig.modificador}
-              </span>
-            </div>
-
-            <small className="hint">{combinada.flashConfig.nota}</small>
-          </div>
-
-          <hr className="section-divider" />
-
-          <div className="form-section">
-            <h3 className="subsection-title">4. Ajuste manual de valores de toma</h3>
+            <h3 className="subsection-title">4. Valores de exposición y enfoque</h3>
 
             <div className="grid-inputs">
-              <div className="form-group">
-                <label>Apertura</label>
-                <input
-                  type="text"
-                  className="modern-input"
-                  value={valoresActuales.apertura}
-                  onChange={(e) => handleCampoToma('apertura', e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Velocidad de obturación</label>
-                <input
-                  type="text"
-                  className="modern-input"
-                  value={valoresActuales.obturacion}
-                  onChange={(e) => handleCampoToma('obturacion', e.target.value)}
-                />
-              </div>
+              <Campo
+                id={idDe('apertura')}
+                label="Apertura"
+                valor={valores.apertura}
+                sugerido={sugerencia.valores.apertura}
+                onChange={(v) => cambiarCampo('apertura', v)}
+              />
+              <Campo
+                id={idDe('obturacion')}
+                label="Velocidad de obturación"
+                valor={valores.obturacion}
+                sugerido={sugerencia.valores.obturacion}
+                onChange={(v) => cambiarCampo('obturacion', v)}
+              />
             </div>
 
             <div className="grid-inputs">
-              <div className="form-group">
-                <label>ISO</label>
-                <input
-                  type="text"
-                  className="modern-input"
-                  value={valoresActuales.iso}
-                  onChange={(e) => handleCampoToma('iso', e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Balance de blancos (WB)</label>
-                <input
-                  type="text"
-                  className="modern-input"
-                  value={valoresActuales.wb}
-                  onChange={(e) => handleCampoToma('wb', e.target.value)}
-                />
-              </div>
+              <Campo
+                id={idDe('iso')}
+                label="ISO"
+                valor={valores.iso}
+                sugerido={sugerencia.valores.iso}
+                onChange={(v) => cambiarCampo('iso', v)}
+              />
+              <Campo
+                id={idDe('wb')}
+                label="Balance de blancos (WB)"
+                valor={valores.wb}
+                sugerido={sugerencia.valores.wb}
+                onChange={(v) => cambiarCampo('wb', v)}
+              />
             </div>
 
             <div className="grid-inputs">
-              <div className="form-group">
-                <label>Modo de enfoque</label>
-                <input
-                  type="text"
-                  className="modern-input"
-                  value={valoresActuales.enfoque}
-                  onChange={(e) => handleCampoToma('enfoque', e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Medición</label>
-                <input
-                  type="text"
-                  className="modern-input"
-                  value={valoresActuales.medicion}
-                  onChange={(e) => handleCampoToma('medicion', e.target.value)}
-                />
-              </div>
+              <Campo
+                id={idDe('enfoque')}
+                label="Modo de enfoque"
+                valor={valores.enfoque}
+                sugerido={sugerencia.valores.enfoque}
+                onChange={(v) => cambiarCampo('enfoque', v)}
+              />
+              <Campo
+                id={idDe('medicion')}
+                label="Medición de luz"
+                valor={valores.medicion}
+                sugerido={sugerencia.valores.medicion}
+                onChange={(v) => cambiarCampo('medicion', v)}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Luz, Flash y Smartphone RAW (sin lente vs con lente agregado) */}
+      {/* 4. Luz, flash y guías */}
       <div className="glass-card">
-        <h2 className="section-title">
-          💡 {t.iluminacionYFlash || 'Luz, flash y Smartphone RAW'}
-        </h2>
+        <h2 className="section-title">💡 {t.iluminacionYFlash || 'Luz y flash en estudio'}</h2>
 
         <div className="biz-form">
           <div className="form-section">
-            <h3 className="subsection-title">5. Tipo de luz y uso de flash en estudio</h3>
+            <h3 className="subsection-title">5. Fuente de luz y flash</h3>
 
             <div className="form-group">
-              <label>{t.tipoLuz || 'Tipo de luz'}</label>
+              <label htmlFor={idDe('tipoLuz')}>{t.tipoLuz || 'Tipo de luz'}</label>
               <select
-                value={luzActual}
-                onChange={(e) => cambiarLuz(e.target.value)}
+                id={idDe('tipoLuz')}
+                value={ctx.tipoLuz}
+                onChange={(e) => aplicarCambios({ tipoLuz: e.target.value })}
                 className="modern-select"
               >
-                {TIPOS_LUZ.map((luz) => (
-                  <option key={luz.id} value={luz.id}>
-                    {luz.nombre}
+                {luces.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre} ({item.wbRef})
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="btn-toggle-group">
+            <div className="btn-toggle-group" role="group" aria-label="Uso de flash">
               <button
                 type="button"
-                className={`btn-toggle ${!flashActual ? 'active' : ''}`}
-                onClick={() => cambiarFlash(false)}
+                className={`btn-toggle ${!ctx.usaFlash ? 'active' : ''}`}
+                aria-pressed={!ctx.usaFlash}
+                onClick={() => aplicarCambios({ usaFlash: false })}
               >
                 🚫 Sin flash
               </button>
               <button
                 type="button"
-                className={`btn-toggle ${flashActual ? 'active' : ''}`}
-                onClick={() => cambiarFlash(true)}
+                className={`btn-toggle ${ctx.usaFlash ? 'active' : ''}`}
+                aria-pressed={ctx.usaFlash}
+                onClick={() => aplicarCambios({ usaFlash: true })}
               >
                 ⚡ Con flash
               </button>
             </div>
 
             <div className="param-item">
-              <span className="param-label">Configuración</span>
-              <span className="param-value">{combinada.flashConfig.estado}</span>
+              <span className="param-label">Estado</span>
+              <span className="param-value">{sugerencia.flash.estado}</span>
             </div>
             <div className="param-item">
               <span className="param-label">Modo</span>
-              <span className="param-value">{combinada.flashConfig.modo}</span>
+              <span className="param-value">{sugerencia.flash.modo}</span>
             </div>
             <div className="param-item">
               <span className="param-label">Potencia</span>
-              <span className="param-value">{combinada.flashConfig.potencia}</span>
+              <span className="param-value">{sugerencia.flash.potencia}</span>
             </div>
             <div className="param-item">
               <span className="param-label">Modificador</span>
-              <span className="param-value">{combinada.flashConfig.modificador}</span>
+              <span className="param-value">{sugerencia.flash.modificador}</span>
             </div>
           </div>
+
+          {esSmartphone && (
+            <>
+              <hr className="section-divider" />
+              <div className="form-section">
+                <h3 className="subsection-title">6. Smartphone RAW en estudio</h3>
+                {FORMAS_SMARTPHONE.map((bloque) => (
+                  <details
+                    key={bloque.id}
+                    className="aj-details"
+                    open={bloque.id === bloqueActivo}
+                  >
+                    <summary>{bloque.titulo}</summary>
+                    <ul className="aj-lista">
+                      {bloque.formasSacar.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                    <div className="param-item">
+                      <span className="param-label">Apertura / Obturación</span>
+                      <span className="param-value">
+                        {bloque.config.apertura} · {bloque.config.obturacion}
+                      </span>
+                    </div>
+                    <div className="param-item">
+                      <span className="param-label">ISO / WB</span>
+                      <span className="param-value">
+                        {bloque.config.iso} · {bloque.config.wb}
+                      </span>
+                    </div>
+                    <div className="param-item">
+                      <span className="param-label">Enfoque / Medición</span>
+                      <span className="param-value">
+                        {bloque.config.enfoque} · {bloque.config.medicion}
+                      </span>
+                    </div>
+                    <div className="param-item">
+                      <span className="param-label">Flash / Luz</span>
+                      <span className="param-value">{bloque.config.flash}</span>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </>
+          )}
 
           <hr className="section-divider" />
 
           <div className="form-section">
-            <h3 className="subsection-title">
-              6. Smartphone RAW: sin lente agregado vs. con lente agregado
-            </h3>
-
-            {FORMAS_SMARTPHONE.map((bloque) => (
-              <div key={bloque.id} className="form-section">
-                <h4 className="subsection-title">{bloque.titulo}</h4>
-                <ul className="hint">
-                  {bloque.formasSacar.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-                <div className="param-item">
-                  <span className="param-label">Apertura</span>
-                  <span className="param-value">{bloque.config.apertura}</span>
-                </div>
-                <div className="param-item">
-                  <span className="param-label">Obturación</span>
-                  <span className="param-value">{bloque.config.obturacion}</span>
-                </div>
-                <div className="param-item">
-                  <span className="param-label">ISO</span>
-                  <span className="param-value">{bloque.config.iso}</span>
-                </div>
-                <div className="param-item">
-                  <span className="param-label">Enfoque / Medición</span>
-                  <span className="param-value">
-                    {bloque.config.enfoque} · {bloque.config.medicion}
-                  </span>
-                </div>
-                <div className="param-item">
-                  <span className="param-label">WB / Flash</span>
-                  <span className="param-value">
-                    {bloque.config.wb} · {bloque.config.flash}
-                  </span>
-                </div>
-              </div>
-            ))}
+            <h3 className="subsection-title">Recomendaciones rápidas</h3>
+            <ul className="aj-lista">
+              {sugerencia.consejos.map((c, idx) => (
+                <li key={idx}>{c}</li>
+              ))}
+            </ul>
           </div>
 
-          {typeof onGuardar === 'function' && (
-            <div className="actions-bar">
-              <button type="button" className="btn-save" onClick={onGuardar}>
+          <div className="aj-acciones">
+            {hayEditados && (
+              <button type="button" className="aj-btn-sec" onClick={restablecer}>
+                ↺ Restablecer sugeridos
+              </button>
+            )}
+            <button type="button" className="aj-btn-sec" onClick={copiar}>
+              📋 Copiar resumen
+            </button>
+            {typeof onGuardar === 'function' && (
+              <button type="button" className="btn-save" onClick={guardar}>
                 💾 {t.guardar || 'Guardar ajustes'}
               </button>
-            </div>
-          )}
+            )}
+            {aviso && (
+              <span className="aj-aviso" role="status" aria-live="polite">
+                {aviso}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
