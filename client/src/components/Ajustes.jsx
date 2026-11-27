@@ -1,7 +1,3 @@
-Ajustes
- · JSX
-
-
 import React, { useEffect, useId, useRef, useState } from 'react';
  
 /* ============================================================
