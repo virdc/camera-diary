@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 // Tasas generales vigentes. Son editables en pantalla por si el caso es especial.
 export const PAISES = {
@@ -26,11 +26,11 @@ export function calcularPresupuesto({
   horasEstimadas,
   gastosViaticos,
   ubicacion,
-  recargoEstudio = 40,
+  recargoEstudio = 0,
   modoIVA,
   tasaIVA,
 }) {
-  const recargo = ubicacion === 'estudio' ? num(recargoEstudio) : 0;
+  const recargo = ubicacion === 'estudio' ? Math.max(0, num(recargoEstudio)) : 0;
   const base = num(precioHora) * num(horasEstimadas) + num(gastosViaticos) + recargo;
   const tasa = modoIVA === 'sin' ? 0 : num(tasaIVA) / 100;
 
@@ -71,7 +71,7 @@ export default function Presupuesto({
   modoIVA, setModoIVA,        // 'sin' | 'agregar' | 'incluido'
   tasaIVA, setTasaIVA,
   ubicacion, setUbicacion,
-  recargoEstudio = 40, setRecargoEstudio,
+  recargoEstudio, setRecargoEstudio,
   cliente, setCliente,
   precioHora, setPrecioHora,
   horasEstimadas, setHorasEstimadas,
@@ -79,11 +79,28 @@ export default function Presupuesto({
   gastosViaticos, setGastosViaticos,
   imprimirPresupuestoPDF,
 }) {
+  const [valorEstudioLocal, setValorEstudioLocal] = useState('');
+
+  const valorEstudio = recargoEstudio !== undefined ? recargoEstudio : valorEstudioLocal;
+  const actualizarValorEstudio = (val) => {
+    if (typeof setRecargoEstudio === 'function') {
+      setRecargoEstudio(val);
+    } else {
+      setValorEstudioLocal(val);
+    }
+  };
+
   const infoPais = PAISES[pais] || PAISES.OTRO;
   const nombreImpuesto = infoPais.impuesto;
 
-  const { subtotal, iva, total } = calcularPresupuesto({
-    precioHora, horasEstimadas, gastosViaticos, ubicacion, recargoEstudio, modoIVA, tasaIVA,
+  const { subtotal, iva, total, recargo } = calcularPresupuesto({
+    precioHora,
+    horasEstimadas,
+    gastosViaticos,
+    ubicacion,
+    recargoEstudio: valorEstudio,
+    modoIVA,
+    tasaIVA,
   });
 
   const handlePais = (codigo) => {
@@ -93,6 +110,13 @@ export default function Presupuesto({
     setTasaIVA(p.iva);
     if (p.iva === 0) setModoIVA('sin');
     else if (modoIVA === 'sin') setModoIVA('agregar');
+  };
+
+  const handleUbicacion = (nuevaUbicacion) => {
+    setUbicacion(nuevaUbicacion);
+    if (nuevaUbicacion !== 'estudio') {
+      actualizarValorEstudio('');
+    }
   };
 
   return (
@@ -135,7 +159,7 @@ export default function Presupuesto({
               <label>{t.locacion}</label>
               <select
                 value={ubicacion}
-                onChange={(e) => setUbicacion(e.target.value)}
+                onChange={(e) => handleUbicacion(e.target.value)}
                 className="modern-select"
               >
                 <option value="exteriores">{t.exteriores}</option>
@@ -144,14 +168,16 @@ export default function Presupuesto({
             </div>
             {ubicacion === 'estudio' && (
               <div className="form-group">
-                <label>{t.valorEstudio || 'Valor estudio'} ({moneda}):</label>
+                <label>{t.valorEstudio || 'Costo de estudio'} ({moneda}):</label>
                 <input
                   type="number"
                   min="0"
+                  step="any"
                   inputMode="decimal"
                   className="modern-input"
-                  value={recargoEstudio}
-                  onChange={(e) => setRecargoEstudio?.(e.target.value)}
+                  placeholder={t.placeholderEstudio || 'Ej. 50000'}
+                  value={valorEstudio}
+                  onChange={(e) => actualizarValorEstudio(e.target.value)}
                 />
               </div>
             )}
@@ -258,6 +284,13 @@ export default function Presupuesto({
 
           {/* Desglose — ✅ SIN estilos inline */}
           <div className="total-box">
+            {ubicacion === 'estudio' && recargo > 0 && (
+              <div className="desglose-row">
+                <span>{t.recargoLocacion || 'Recargo por locación (Estudio)'}</span>
+                <span>{formatearMoneda(recargo, moneda)}</span>
+              </div>
+            )}
+
             {modoIVA !== 'sin' && (
               <>
                 <div className="desglose-row">
@@ -271,6 +304,7 @@ export default function Presupuesto({
                 <div className="desglose-divider" aria-hidden="true" />
               </>
             )}
+
             <div className="desglose-row desglose-total">
               <span>{t.presupuestoFinal}</span>
               <span className="price">{formatearMoneda(total, moneda)}</span>
